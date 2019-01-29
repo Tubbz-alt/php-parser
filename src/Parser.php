@@ -288,9 +288,9 @@ class Parser
         return true;
     }
 
-    public function parse_literal($regex_particle)
+    public function parse_literal($literal_particle)
     {
-        $literal_string = $regex_particle->get_literal_string();
+        $literal_string = $literal_particle->get_literal_string();
         $literal_string_length = strlen( $literal_string );
 
         if( $this->context_frame->char_index + $literal_string_length
@@ -319,6 +319,21 @@ class Parser
         if( $literal_string[ $literal_string_length - 1 ] == "\n" ) {
 
             $this->context_frame->matched_cr = true;
+
+        }
+
+        return true;
+    }
+
+    public function parse_space($space_particle)
+    {
+        $i = $this->context_frame->char_index;
+
+        while ( $this->string[ $i ] == " " ||  $this->string[ $i ] == "\t") {
+
+            $this->context_frame->matched_length += 1;
+
+            $i += 1;
 
         }
 

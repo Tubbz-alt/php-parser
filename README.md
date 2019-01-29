@@ -47,7 +47,7 @@ Include this library in your project `composer.json` file:
 
 Example of a grammar definition that sums the integers in a literal array:
 
-```
+```php
 $parser_definition = new Parser_Definition();
 $parser_definition->define( function($parser) {
 
@@ -55,7 +55,7 @@ $parser_definition->define( function($parser) {
 
         $this->matcher( function() {
 
-            $this->lit( "[" ) ->exp( "integer-list" ) ->lit( "]" );
+            $this->lit( "[" ) ->space() ->exp( "integer-list" ) ->space() ->lit( "]" );
 
         });
 
@@ -71,8 +71,10 @@ $parser_definition->define( function($parser) {
 
         $this->matcher( function() {
 
-            $this->exp( "integer" ) ->lit( "," ) ->exp( "integer-list" )
+            $this->exp( "integer" ) ->space() ->lit( "," ) ->space() ->exp( "integer-list" )
+
             ->or()
+
             ->exp( "integer" );
 
         });
@@ -80,12 +82,12 @@ $parser_definition->define( function($parser) {
         $this->handler( function($integer, $list = null) {
 
             if( $list == null ) {
+
                 return [ $integer ];
-            } else {
-                return array_merge( [ $integer ], $list );
+
             }
 
-            return $integer;
+            return array_merge( [ $integer ], $list );
 
         });
 
@@ -118,7 +120,7 @@ To see a real use of a complex grammar take a look at the [haijin/haiku](https:/
 ```php
 $parser = new Parser( $parser_definition );
 
-$result = $parser->parse_string( "[1,2,3,4]" );
+$result = $parser->parse_string( "[ 1, 2, 3, 4 ]" );
 ```
 
 <a name="c-3"></a>

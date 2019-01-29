@@ -19,7 +19,7 @@ $spec->describe( "When matching recursive expressions", function() {
 
                 $this->matcher( function() {
 
-                    $this->lit( "[" ) ->exp( "integer-list" ) ->lit( "]" );
+                    $this->lit( "[" ) ->space() ->exp( "integer-list" ) ->space() ->lit( "]" );
 
                 });
 
@@ -35,8 +35,10 @@ $spec->describe( "When matching recursive expressions", function() {
 
                 $this->matcher( function() {
 
-                    $this->exp( "integer" ) ->lit( "," ) ->exp( "integer-list" )
+                    $this->exp( "integer" ) ->space() ->lit( "," ) ->space() ->exp( "integer-list" )
+
                     ->or()
+
                     ->exp( "integer" );
 
                 });
@@ -44,12 +46,12 @@ $spec->describe( "When matching recursive expressions", function() {
                 $this->handler( function($integer, $list = null) {
 
                     if( $list == null ) {
+
                         return [ $integer ];
-                    } else {
-                        return array_merge( [ $integer ], $list );
+
                     }
 
-                    return $integer;
+                    return array_merge( [ $integer ], $list );
 
                 });
 
@@ -91,10 +93,42 @@ $spec->describe( "When matching recursive expressions", function() {
 
     });
 
+    $this->describe( "when the input matches a base expression with spaces", function() {
+
+        $this->let( "input", function() {
+            return "[ 1 ]";
+        });
+
+        $this->it( "evaluates the handler closure", function() {
+
+            $result = $this->parser->parse_string( $this->input );
+
+            $this->expect( $result ) ->to() ->equal( 1 );
+
+        });
+
+    });
+
     $this->describe( "when the input matches a recursive expression", function() {
 
         $this->let( "input", function() {
             return "[1,2,3,4]";
+        });
+
+        $this->it( "evaluates the handler closure", function() {
+
+            $result = $this->parser->parse_string( $this->input );
+
+            $this->expect( $result ) ->to() ->equal( 10 );
+
+        });
+
+    });
+
+    $this->describe( "when the input matches a recursive expression with spaces", function() {
+
+        $this->let( "input", function() {
+            return "[ 1 , 2 , 3 , 4 ]";
         });
 
         $this->it( "evaluates the handler closure", function() {
@@ -149,7 +183,7 @@ $spec->describe( "When matching recursive expressions", function() {
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(
-                        'Unexpected expression " 2 3 4]". At line: 1 column: 3.'
+                        'Unexpected expression "2 3 4]". At line: 1 column: 4.'
                     );
             }); 
 

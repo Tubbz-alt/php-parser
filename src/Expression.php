@@ -83,6 +83,15 @@ class Expression
         return $this;
     }
 
+    public function space()
+    {
+        $this->add_particle(
+            Create::an( Space_Particle::class )->with()
+        );
+
+        return $this;
+    }
+
     public function or()
     {
         $this->particle_options->add(

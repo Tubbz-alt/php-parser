@@ -1,6 +1,6 @@
 {
     "name": "haijin/parser",
-    "description": "Framework to easily implement parsers using a simple and expressive DSL.",
+    "description": "Framework to easily implement recursive descending parsers using a simple and expressive DSL.",
     "keywords": ["parser", "recursive descending parser", "grammar"],
     "version": "0.0.1",
     "type": "library",
