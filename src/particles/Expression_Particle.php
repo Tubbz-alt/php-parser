@@ -26,7 +26,7 @@ class Expression_Particle
 
     public function parse_with( $parser )
     {
-        return $parser->parse_expression( $this );
+        return $parser->parse_expression_particle( $this );
     }
 
     /// Printing

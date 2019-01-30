@@ -225,7 +225,7 @@ class Parser
 
     /// Particle methods
 
-    public function parse_regex($regex_particle)
+    public function parse_regex_particle($regex_particle)
     {
         $matches = [];
 
@@ -259,12 +259,12 @@ class Parser
         return true;
     }
 
-    public function parse_multiple_regex($regex_particle)
+    public function parse_multiple_regex_particle($mutliple_regex_particle)
     {
         $matches = [];
 
         \preg_match(
-            $regex_particle->get_regex_string() . "A",
+            $mutliple_regex_particle->get_regex_string() . "A",
             $this->string,
             $matches,
             0,
@@ -288,12 +288,12 @@ class Parser
         return true;
     }
 
-    public function parse_literal($literal_particle)
+    public function parse_symbol_particle($symbol_particle)
     {
-        $literal_string = $literal_particle->get_literal_string();
-        $literal_string_length = strlen( $literal_string );
+        $string = $symbol_particle->get_symbol_string();
+        $string_length = strlen( $string );
 
-        if( $this->context_frame->char_index + $literal_string_length
+        if( $this->context_frame->char_index + $string_length
             >
             $this->string_length
           )
@@ -303,9 +303,9 @@ class Parser
 
         if( substr_compare(
                 $this->string,
-                $literal_string,
+                $string,
                 $this->context_frame->char_index,
-                $literal_string_length
+                $string_length
             )
             !=
             0
@@ -314,9 +314,15 @@ class Parser
             return false;
         }
 
-        $this->context_frame->matched_length = $literal_string_length;
+        $this->context_frame->matched_length = strlen( $string );
 
-        if( $literal_string[ $literal_string_length - 1 ] == "\n" ) {
+        $this->context_frame->handler_params[] = $string;
+
+        if( $this->context_frame->matched_length > 0
+            &&
+            $string[ $this->context_frame->matched_length - 1 ] == "\n"
+          )
+        {
 
             $this->context_frame->matched_cr = true;
 
@@ -325,7 +331,44 @@ class Parser
         return true;
     }
 
-    public function parse_space($space_particle)
+    public function parse_string_particle($string_particle)
+    {
+        $string = $string_particle->get_string();
+        $string_length = strlen( $string );
+
+        if( $this->context_frame->char_index + $string_length
+            >
+            $this->string_length
+          )
+        {
+            return false;
+        }
+
+        if( substr_compare(
+                $this->string,
+                $string,
+                $this->context_frame->char_index,
+                $string_length
+            )
+            !=
+            0
+          )
+        {
+            return false;
+        }
+
+        $this->context_frame->matched_length = $string_length;
+
+        if( $string[ $string_length - 1 ] == "\n" ) {
+
+            $this->context_frame->matched_cr = true;
+
+        }
+
+        return true;
+    }
+
+    public function parse_space_particle($space_particle)
     {
         $i = $this->context_frame->char_index;
 
@@ -340,14 +383,14 @@ class Parser
         return true;
     }
 
-    public function parse_expression($expression_particle)
+    public function parse_expression_particle($expression_particle)
     {
         $this->begin_expression( $expression_particle->get_expression_name() );
 
         return true;
     }
 
-    public function parse_end_of_expression($end_of_expression_particle)
+    public function parse_end_of_expression_particle($end_of_expression_particle)
     {
         $this->end_particles_sequence();
 

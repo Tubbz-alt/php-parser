@@ -10,7 +10,7 @@ class End_Of_Expression_Particle
 
     public function parse_with( $parser )
     {
-        return $parser->parse_end_of_expression( $this );
+        return $parser->parse_end_of_expression_particle( $this );
     }
 
     /// Printing

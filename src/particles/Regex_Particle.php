@@ -26,7 +26,7 @@ class Regex_Particle
 
     public function parse_with( $parser )
     {
-        return $parser->parse_regex( $this );
+        return $parser->parse_regex_particle( $this );
     }
 
     /// Printing

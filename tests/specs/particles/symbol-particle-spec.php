@@ -3,7 +3,7 @@
 use Haijin\Parser\Parser;
 use Haijin\Parser\Parser_Definition;
 
-$spec->describe( "When matching a literal particle", function() {
+$spec->describe( "When matching a symbol particle", function() {
 
     $this->let( "parser", function() {
 
@@ -19,13 +19,13 @@ $spec->describe( "When matching a literal particle", function() {
 
                 $this->matcher( function() {
 
-                    $this->str( "123" );
+                    $this->sym( "123" );
 
                 });
 
-                $this->handler( function() {
+                $this->handler( function($symbol) {
 
-                    return "parsed";
+                    return $symbol;
 
                 });
 
@@ -45,7 +45,7 @@ $spec->describe( "When matching a literal particle", function() {
 
             $result = $this->parser->parse_string( $this->input );
 
-            $this->expect( $result ) ->to() ->equal( "parsed" );
+            $this->expect( $result ) ->to() ->equal( "123" );
 
         });
 

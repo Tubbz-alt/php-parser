@@ -74,10 +74,19 @@ class Expression
         return $this;
     }
 
-    public function lit($literal_string)
+    public function str($string)
     {
         $this->add_particle(
-            Create::a( Literal_Particle::class )->with( $literal_string )
+            Create::a( String_Particle::class )->with( $string )
+        );
+
+        return $this;
+    }
+
+    public function sym($string)
+    {
+        $this->add_particle(
+            Create::a( Symbol_Particle::class )->with( $string )
         );
 
         return $this;

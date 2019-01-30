@@ -31,7 +31,7 @@ $spec->describe( "When calling custom methods in the parser", function() {
 
                     $this->matcher( function() {
 
-                        $this ->lit( "1" );
+                        $this ->str( "1" );
 
                     });
 
@@ -67,7 +67,7 @@ $spec->describe( "When calling custom methods in the parser", function() {
 
                     $this->matcher( function() {
 
-                        $this ->lit( "1" );
+                        $this ->str( "1" );
 
                     });
 

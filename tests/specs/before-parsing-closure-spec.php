@@ -31,7 +31,7 @@ $spec->describe( "Before parsing an input", function() {
 
                     $this->matcher( function() {
 
-                        $this ->lit( "1" );
+                        $this ->str( "1" );
 
                     });
 
@@ -70,7 +70,7 @@ $spec->describe( "Before parsing an input", function() {
 
                     $this->matcher( function() {
 
-                        $this ->lit( "1" );
+                        $this ->str( "1" );
 
                     });
 
