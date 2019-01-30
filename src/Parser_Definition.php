@@ -38,9 +38,13 @@ class Parser_Definition
         return $this->expressions;
     }
 
-    public function get_expression_named( $expression_name )
+    public function get_expression_named($expression_name, $absent_closure = null, $binding = null)
     {
-        return $this->expressions_by_name[ $expression_name ];
+        return $this->expressions_by_name->at_if_absent(
+                    $expression_name,
+                    $absent_closure,
+                    $binding
+                );
     }
 
     public function get_expressions_in( $expressions_names )

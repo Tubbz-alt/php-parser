@@ -2,7 +2,7 @@
 
 namespace Haijin\Parser;
 
-class UndefinedMethodError extends Error
+class Expression_Not_Found_Error extends Error
 {
     protected $method_name;
     protected $parser;

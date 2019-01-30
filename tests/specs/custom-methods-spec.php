@@ -90,10 +90,10 @@ $spec->describe( "When calling custom methods in the parser", function() {
                 $this->parser->parse_string( $this->input );
 
             }) ->to() ->raise(
-                Haijin\Parser\UndefinedMethodError::class,
+                Haijin\Parser\Method_Not_Found_Error::class,
                 function($error) {
 
-                    $this->expect( $error->getMessage() ) ->to() ->equal( 'The method "custom" is not defined in this parser.' );
+                    $this->expect( $error->getMessage() ) ->to() ->equal( 'The method "custom" was not found in this parser.' );
 
                     $this->expect( $error->get_method_name() ) ->to()
                         ->equal( "custom" );

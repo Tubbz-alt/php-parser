@@ -128,7 +128,7 @@ $spec->describe( "When matching a particle among several", function() {
                 $this->parser->parse_string( $this->input );
 
             }) ->to() ->raise(
-                \Haijin\Parser\UnexpectedExpressionError::class,
+                \Haijin\Parser\Unexpected_Expression_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -153,7 +153,7 @@ $spec->describe( "When matching a particle among several", function() {
                 $this->parser->parse_string( $this->input );
 
             }) ->to() ->raise(
-                \Haijin\Parser\UnexpectedExpressionError::class,
+                \Haijin\Parser\Unexpected_Expression_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(

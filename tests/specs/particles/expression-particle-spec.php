@@ -81,7 +81,7 @@ $spec->describe( "When matching an expression particle", function() {
                 $this->parser->parse_string( $this->input );
 
             }) ->to() ->raise(
-                \Haijin\Parser\UnexpectedExpressionError::class,
+                \Haijin\Parser\Unexpected_Expression_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -106,13 +106,44 @@ $spec->describe( "When matching an expression particle", function() {
                 $this->parser->parse_string( $this->input );
 
             }) ->to() ->raise(
-                \Haijin\Parser\UnexpectedExpressionError::class,
+                \Haijin\Parser\Unexpected_Expression_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(
                         'Unexpected expression "a". At line: 1 column: 4.'
                     );
             }); 
+
+        });
+
+    });
+
+    $this->describe( "that is not defined", function() {
+
+        $this->let( "input", function() {
+            return "123a";
+        });
+
+        $this->let( "parser_definition", function() {
+
+            return new Parser_Definition();
+
+        });
+
+        $this->it( "raises an error", function() {
+
+            $this->expect( function() {
+
+                $this->parser->parse_string( $this->input );
+
+            }) ->to() ->raise(
+                \Haijin\Parser\Expression_Not_Found_Error::class,
+                function($error) {
+
+                    $this->expect( $error->getMessage() ) ->to() ->equal(
+                        'The expression "root" was not found in this parser.'
+                    );
+            });
 
         });
 

@@ -115,7 +115,13 @@ class Parser
 
     protected function get_expression_named($expression_name)
     {
-        return $this->parser_definition->get_expression_named( $expression_name );
+        return $this->parser_definition->get_expression_named(
+            $expression_name,
+            function() use($expression_name) {
+
+                $this->raise_expression_not_found_error( $expression_name );
+
+        }, $this );
     }
 
     protected function begin_expression($expression_name)
@@ -441,7 +447,7 @@ class Parser
     {
         $closure = $this->parser_definition->custom_method_at( $method_name, function() use($method_name) {
 
-            $this->raise_undefined_method_error( $method_name );
+            $this->raise_method_not_found_error( $method_name );
 
         }, $this );
 
@@ -467,17 +473,28 @@ class Parser
             $this->context_frame->char_index
         );
 
-        return Create::an( UnexpectedExpressionError::class ) ->with(
+        return Create::an( Unexpected_Expression_Error::class ) ->with(
             "Unexpected expression \"{$matches[0]}\". At line: {$this->context_frame->line_index} column: {$this->context_frame->column_index}."
         );
     }
 
-    protected function raise_undefined_method_error($method_name)
+    protected function raise_method_not_found_error($method_name)
     {
-        throw Create::an( \Haijin\Parser\UndefinedMethodError::class ) ->with(
-            "The method \"{$method_name}\" is not defined in this parser.",
+        throw Create::an( \Haijin\Parser\Method_Not_Found_Error::class ) ->with(
+            "The method \"{$method_name}\" was not found in this parser.",
             $method_name,
             $this
         );
     }
+
+
+    protected function raise_expression_not_found_error($expression_name)
+    {
+        throw Create::an( \Haijin\Parser\Expression_Not_Found_Error::class ) ->with(
+            "The expression \"{$expression_name}\" was not found in this parser.",
+            $expression_name,
+            $this
+        );
+    }
+
 }
