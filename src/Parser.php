@@ -80,18 +80,36 @@ class Parser
 
     protected function do_parsing_loop()
     {
-        while( ! $this->at_eof() ) {
-
+        while( $this->context_frame->expected_particles->not_empty() )
+        {
+            // No more expressions
             if( $this->context_frame->current_expression === null ) {
-                $this->raise_unexpected_expression_error();
+                break;
             }
 
-            while( $this->context_frame->expected_particles->not_empty() )
-            {
-                $particle = $this->context_frame->expected_particles->remove_first();
+            $particle = $this->context_frame->expected_particles->remove_first();
+
+            if( $this->at_eof() ) {
+
+                if( is_a( $particle, End_Of_Expression_Particle::class ) ) {
+
+                    $this->parse_particle( $particle );
+                    
+                } else {
+
+                    $this->on_unexpected_particle();
+
+                }
+
+            } else {
 
                 $this->parse_particle( $particle );
+
             }
+        }
+
+        if( $this->not_eof() ) {
+            $this->raise_unexpected_expression_error();
         }
     }
 
@@ -229,6 +247,39 @@ class Parser
 
     /// Particle methods
 
+    public function parse_symbol_particle($symbol_particle)
+    {
+        $string = $symbol_particle->get_symbol_string();
+        $string_length = strlen( $string );
+
+        if( $this->context_frame->char_index + $string_length
+            >
+            $this->string_length
+          )
+        {
+            return false;
+        }
+
+        if( substr_compare(
+                $this->string,
+                $string,
+                $this->context_frame->char_index,
+                $string_length
+            )
+            !=
+            0
+          )
+        {
+            return false;
+        }
+
+        $this->context_frame->matched_length = strlen( $string );
+
+        $this->context_frame->handler_params[] = $string;
+
+        return true;
+    }
+
     public function parse_regex_particle($regex_particle)
     {
         $matches = [];
@@ -276,39 +327,6 @@ class Parser
         return true;
     }
 
-    public function parse_symbol_particle($symbol_particle)
-    {
-        $string = $symbol_particle->get_symbol_string();
-        $string_length = strlen( $string );
-
-        if( $this->context_frame->char_index + $string_length
-            >
-            $this->string_length
-          )
-        {
-            return false;
-        }
-
-        if( substr_compare(
-                $this->string,
-                $string,
-                $this->context_frame->char_index,
-                $string_length
-            )
-            !=
-            0
-          )
-        {
-            return false;
-        }
-
-        $this->context_frame->matched_length = strlen( $string );
-
-        $this->context_frame->handler_params[] = $string;
-
-        return true;
-    }
-
     public function parse_string_particle($string_particle)
     {
         $string = $string_particle->get_string();
@@ -342,16 +360,14 @@ class Parser
 
     public function parse_space_particle($space_particle)
     {
-        $i = $this->context_frame->char_index;
-        $char = $this->string[ $i ];
+        $char = $this->string[ $this->context_frame->char_index ];
 
-        while ( $char == " " ||  $char == "\t" ) {
+        while( $this->not_eof() && $char == " " ||  $char == "\t" ) {
 
-            $this->context_frame->matched_length += 1;
+            $this->increment_char_index_by( 1 );
+            $this->increment_column_index_by( 1 );
 
-            $i += 1;
-
-            $char = $this->string[ $i ];
+            $char = $this->string[ $this->context_frame->char_index ];
         }
 
         return true;
@@ -359,10 +375,9 @@ class Parser
 
     public function parse_blank_particle($space_particle)
     {
-        $i = $this->context_frame->char_index;
-        $char = $this->string[ $i ];
+        $char = $this->string[ $this->context_frame->char_index ];
 
-        while( $char == " " || $char == "\t" || $char == "\n" ) {
+        while( $this->not_eof() && $char == " " || $char == "\t" || $char == "\n" ) {
 
             $this->increment_char_index_by( 1 );
             $this->increment_column_index_by( 1 );
@@ -371,9 +386,7 @@ class Parser
                 $this->new_line();
             }
 
-            $i += 1;
-
-            $char = $this->string[ $i ];
+            $char = $this->string[ $this->context_frame->char_index ];
 
         }
 
@@ -414,6 +427,11 @@ class Parser
     protected function at_eof()
     {
         return $this->context_frame->char_index >= $this->string_length;
+    }
+
+    protected function not_eof()
+    {
+        return $this->context_frame->char_index < $this->string_length;
     }
 
     protected function update_stream_position()

@@ -1,6 +1,6 @@
 # Haijin Parser
 
-The most simple template engine possible, inspired in Ruby's Slim.
+Framework to easily implement recursive descending parsers using a simple and expressive BNF DSL.
 
 [![Latest Stable Version](https://poser.pugx.org/haijin/parser/version)](https://packagist.org/packages/haijin/parser)
 [![Latest Unstable Version](https://poser.pugx.org/haijin/parser/v/unstable)](https://packagist.org/packages/haijin/parser)
