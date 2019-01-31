@@ -7,7 +7,7 @@ Framework to easily implement recursive descending parsers using a simple and ex
 [![Build Status](https://travis-ci.org/haijin-development/php-parser.svg?branch=master)](https://travis-ci.org/haijin-development/php-parser)
 [![License](https://poser.pugx.org/haijin/parser/license)](https://packagist.org/packages/haijin/parser)
 
-### Version 0.0.1
+### Version 0.0.2
 
 This library is under active development and no stable version was released yet.
 
@@ -34,7 +34,7 @@ If you like it a lot you may contribute by [financing](https://github.com/haijin
         8. [Expression particle](#c-2-4-8)
     5. [Parser methods](#c-2-5)
     6. [Before parsing method](#c-2-6)
-    7. [Why does the string particle exists](#c-2-7)
+    7. [Why does the string particle exist](#c-2-7)
 3. [Running the specs](#c-3)
 
 <a name="c-1"></a>
@@ -48,7 +48,7 @@ Include this library in your project `composer.json` file:
 
     "require-dev": {
         ...
-        "haijin/parser": "^0.0.1",
+        "haijin/parser": "^0.0.2",
         ...
     },
 
@@ -624,7 +624,7 @@ $parser->expression( "addition",  function() {
 
 matches the strings `"3 + 4"`.
 
-The sub-expression can be the same expression being defined, allowing to perform a descendant recursive parsing.
+The sub-expression can be the same expression being defined, allowing to perform a recursive descendent parsing.
 
 Example:
 
@@ -757,7 +757,7 @@ $parser->before_parsing( function() {
 ```
 
 <a name="c-2-7"></a>
-#### Why does the string particle exists
+#### Why does the string particle exist
 
 <a name="c-3"></a>
 ## Running the specs

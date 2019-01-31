@@ -196,4 +196,40 @@ $spec->describe( "When matching a blank particle", function() {
 
     });
 
+    $this->describe( "with blank at the end of the stream", function() {
+
+        $this->let( "parser_definition", function() {
+
+            return ( new Parser_Definition() )->define( function($parser) {
+
+                $parser->expression( "root",  function() {
+
+                    $this->matcher( function() {
+
+                        $this ->str( "1" ) ->blank();
+
+                    });
+
+                    $this->handler( function() {
+                        return "parsed";
+                    });
+
+                });
+
+            });
+
+        });
+
+        $this->let( "input", function() {
+            return "1\n ";
+        });
+
+        $this->it( "does not fail", function() {
+
+            $result = $this->parser->parse_string( $this->input );
+
+        });
+
+    });
+
 });

@@ -367,7 +367,9 @@ class Parser
             $this->increment_char_index_by( 1 );
             $this->increment_column_index_by( 1 );
 
-            $char = $this->string[ $this->context_frame->char_index ];
+            if( $this->not_eof() ) {
+                $char = $this->string[ $this->context_frame->char_index ];
+            }
         }
 
         return true;
@@ -386,7 +388,9 @@ class Parser
                 $this->new_line();
             }
 
-            $char = $this->string[ $this->context_frame->char_index ];
+            if( $this->not_eof() ) {
+                $char = $this->string[ $this->context_frame->char_index ];
+            }
 
         }
 
