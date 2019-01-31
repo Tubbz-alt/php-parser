@@ -362,14 +362,16 @@ class Parser
     {
         $char = $this->string[ $this->context_frame->char_index ];
 
-        while( $this->not_eof() && $char == " " ||  $char == "\t" ) {
+        while( $char == " " ||  $char == "\t" ) {
 
             $this->increment_char_index_by( 1 );
             $this->increment_column_index_by( 1 );
 
-            if( $this->not_eof() ) {
-                $char = $this->string[ $this->context_frame->char_index ];
+            if( $this->at_eof() ) {
+                break;
             }
+
+            $char = $this->string[ $this->context_frame->char_index ];
         }
 
         return true;
@@ -379,7 +381,7 @@ class Parser
     {
         $char = $this->string[ $this->context_frame->char_index ];
 
-        while( $this->not_eof() && $char == " " || $char == "\t" || $char == "\n" ) {
+        while( $char == " " || $char == "\t" || $char == "\n" ) {
 
             $this->increment_char_index_by( 1 );
             $this->increment_column_index_by( 1 );
@@ -388,10 +390,11 @@ class Parser
                 $this->new_line();
             }
 
-            if( $this->not_eof() ) {
-                $char = $this->string[ $this->context_frame->char_index ];
+            if( $this->at_eof() ) {
+                break;
             }
 
+            $char = $this->string[ $this->context_frame->char_index ];
         }
 
         return true;
@@ -473,6 +476,18 @@ class Parser
         }, $this );
 
         return $closure->call( $this, ...$params );
+    }
+
+    /// Debugging
+
+    public function current_string()
+    {
+        return \substr( $this->string, $this->context_frame->char_index );
+    }
+
+    public function current_char()
+    {
+        return $this->string[ $this->context_frame->char_index ];
     }
 
     /// Raising errors
