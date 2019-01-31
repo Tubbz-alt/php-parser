@@ -101,6 +101,24 @@ class Expression
         return $this;
     }
 
+    public function blank()
+    {
+        $this->add_particle(
+            Create::an( Blank_Particle::class )->with()
+        );
+
+        return $this;
+    }
+
+    public function cr()
+    {
+        $this->add_particle(
+            Create::an( Carriage_Return_Particle::class )->with()
+        );
+
+        return $this;
+    }
+
     public function or()
     {
         $this->particle_options->add(

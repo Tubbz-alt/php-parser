@@ -44,7 +44,6 @@ class Parser
             Create::an( Ordered_Collection::class )->with();
 
         $context_frame->matched_length = 0;
-        $context_frame->matched_cr = false;
         $context_frame->handler_params = [];
         $context_frame->result = null;
 
@@ -99,7 +98,6 @@ class Parser
     public function parse_particle($particle)
     {
         $this->context_frame->matched_length = 0;
-        $this->context_frame->matched_cr = false;
 
         $parsed = $particle->parse_with( $this );
 
@@ -252,16 +250,6 @@ class Parser
         $this->context_frame->handler_params[] = isset( $matches[ 1 ] ) ?
             $matches[ 1 ] : $matches[ 0 ];
 
-        if( $this->context_frame->matched_length > 0
-            &&
-            $matches[ 0 ][ $this->context_frame->matched_length - 1 ] == "\n"
-          )
-        {
-
-            $this->context_frame->matched_cr = true;
-
-        }
-
         return true;
     }
 
@@ -284,12 +272,6 @@ class Parser
         $this->context_frame->matched_length = strlen( $matches[ 0 ] );
 
         $this->context_frame->handler_params[] = array_slice( $matches, 1 );
-
-        if( $matches[ 0 ][ $this->context_frame->matched_length - 1 ] == "\n" ) {
-
-            $this->context_frame->matched_cr = true;
-
-        }
 
         return true;
     }
@@ -324,16 +306,6 @@ class Parser
 
         $this->context_frame->handler_params[] = $string;
 
-        if( $this->context_frame->matched_length > 0
-            &&
-            $string[ $this->context_frame->matched_length - 1 ] == "\n"
-          )
-        {
-
-            $this->context_frame->matched_cr = true;
-
-        }
-
         return true;
     }
 
@@ -365,26 +337,60 @@ class Parser
 
         $this->context_frame->matched_length = $string_length;
 
-        if( $string[ $string_length - 1 ] == "\n" ) {
-
-            $this->context_frame->matched_cr = true;
-
-        }
-
         return true;
     }
 
     public function parse_space_particle($space_particle)
     {
         $i = $this->context_frame->char_index;
+        $char = $this->string[ $i ];
 
-        while ( $this->string[ $i ] == " " ||  $this->string[ $i ] == "\t") {
+        while ( $char == " " ||  $char == "\t" ) {
 
             $this->context_frame->matched_length += 1;
 
             $i += 1;
 
+            $char = $this->string[ $i ];
         }
+
+        return true;
+    }
+
+    public function parse_blank_particle($space_particle)
+    {
+        $i = $this->context_frame->char_index;
+        $char = $this->string[ $i ];
+
+        while( $char == " " || $char == "\t" || $char == "\n" ) {
+
+            $this->increment_char_index_by( 1 );
+            $this->increment_column_index_by( 1 );
+
+            if( $char == "\n" ) {
+                $this->new_line();
+            }
+
+            $i += 1;
+
+            $char = $this->string[ $i ];
+
+        }
+
+        return true;
+    }
+
+    public function parse_cr_particle($cr_particle)
+    {
+        if( $this->string[ $this->context_frame->char_index ] != "\n" ) {
+
+            return false;
+
+        }
+
+        $this->increment_char_index_by( 1 );
+
+        $this->new_line();
 
         return true;
     }
@@ -414,15 +420,8 @@ class Parser
     {
         $this->increment_char_index_by( $this->context_frame->matched_length );
 
-        if( $this->context_frame->matched_cr ) {
+        $this->increment_column_index_by( $this->context_frame->matched_length );
 
-            $this->new_line();
-
-        } else {
-
-            $this->increment_column_index_by( $this->context_frame->matched_length );
-
-        }        
     }
 
     public function new_line()

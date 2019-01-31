@@ -29,10 +29,12 @@ If you like it a lot you may contribute by [financing](https://github.com/haijin
         3. [Multiple regex particle](#c-2-4-3)
         4. [String particle](#c-2-4-4)
         5. [Space particle](#c-2-4-5)
-        6. [Expression particle](#c-2-4-6)
-        7. [Why does the string particle exists](#c-2-4-7)
+        6. [Blank particle](#c-2-4-6)
+        7. [Carriage return particle](#c-2-4-7)
+        8. [Expression particle](#c-2-4-8)
     5. [Parser methods](#c-2-5)
     6. [Before parsing method](#c-2-6)
+    7. [Why does the string particle exists](#c-2-7)
 3. [Running the specs](#c-3)
 
 <a name="c-1"></a>
@@ -501,11 +503,9 @@ matches the string `"[ ... ]"` but only passes to the `handler` the value from t
 <a name="c-2-4-5"></a>
 #### Space particle
 
-`space` particle skips zero or more consecutives spaces and tabs in the input until the next non space non tab character.
+`space` particle skips zero or more consecutives spaces and tabs characters in the input until the next non space non tab character. It does not pass any parameters to the handler.
 
-`space` particle does not pass any parameters to the handler.
-
-`space` particle does not expect any space or tab character to be present, but if they are it skips them.
+It does not expect any space or tab character to be present, but if they are it skips them.
 
 Use `space` particles to conveniently allow any number of optional spaces and tabs between two other consecutives particles.
 
@@ -532,6 +532,70 @@ $parser->expression( "addition",  function() {
 matches the strings `"3+4"`, `"3 + 4"`, `"3   +    4"`, etc.
 
 <a name="c-2-4-6"></a>
+#### Blank particle
+
+`blank` particle skips zero or more consecutives spaces, tabs and carriage returns (`"\n"`) characters in the input until the next non space, non tab, non cr character. It does not pass any parameters to the handler.
+
+It does not expect any space, tab nor cr character to be present, but if they are it skips them.
+
+Use `blank` particles to conveniently allow any number of optional spaces, tabs and crs between two other consecutives particles.
+
+Example:
+
+```php
+$parser->expression( "addition",  function() {
+
+    $this->matcher( function() {
+
+        $this ->exp( "integer" ) ->blank() ->str( "+" ) ->blank() ->exp( "integer" );
+
+    });
+
+    $this->handler( function($left_operand, $right_operand) {
+
+        return $left_operand + $right_operand;
+
+    });
+
+});
+```
+
+matches the strings `"3+4"`, `"3 + 4"`, `"3\n+\n4"`, etc.
+
+<a name="c-2-4-7"></a>
+#### Carriage return particle
+
+`cr` particle matches a single carriage return (`"\n"`) character. It does not pass any parameters to the handler.
+
+Example:
+
+```php
+$parser->expression( "integer-list",  function() {
+
+    $this->matcher( function() {
+
+        $this->exp( "integer" ) ->cr() ->exp( "integer-list" )
+        ->or()
+        ->exp( "integer" );
+
+    });
+
+    $this->handler( function($integer, $list = null) {
+
+        if( $list == null ) {
+            return [ $integer ];
+        } else {
+            return array_merge( [ $integer ], $list );
+        }
+
+    });
+
+});
+```
+
+matches the strings `"1"`, `"1\n2"`, `"1\n2\n3"`, etc.
+
+<a name="c-2-4-8"></a>
 #### Expression particle
 
 `exp` particle matches a sub-expression defined in the same grammar and passes the result of the sub-expression `handler` to its handler as the parameter.
@@ -636,17 +700,64 @@ $parser->expression( "literal",  function() {
 
 matches the strings `"[ true, false, null ]"`, `"[1, "1", 1.0]`", etc.
 
-<a name="c-2-4-7"></a>
-#### Why does the string particle exists
-
 
 <a name="c-2-5"></a>
 ### Parser methods
 
+Define methods and call them from within the `handlers` with:
+
+```php
+$parser->expression( "literal-list",  function() {
+
+    $this->matcher( function() {
+
+        $this->exp( "literal" ) ->space() ->str( "," ) ->space() ->exp( "literal-list" )
+
+        ->or()
+
+        ->exp( "literal" );
+
+    });
+
+    $this->handler( function($value, $list = null) {
+
+        if( $list == null ) {
+
+            return [ $value ];
+
+        }
+
+        return $this->prepend( $value, $list );
+
+    });
+
+});
+
+
+$parser->def( "prepend", function($item, $array) {
+
+    return array_merge( [ $item ], $array );
+
+});
+```
+
+If the method is not present it will raise a `Haijin\Parser\Method_Not_Found_Error`.
 
 <a name="c-2-6"></a>
 ### Before parsing method
 
+Perform any initialization previous to parsing the input in a `before_parsing` method:
+
+```php
+$parser->before_parsing( function() {
+
+    $this->some_configuration_flag = true;
+
+});
+```
+
+<a name="c-2-7"></a>
+#### Why does the string particle exists
 
 <a name="c-3"></a>
 ## Running the specs
