@@ -4,13 +4,12 @@ namespace Haijin\Parser;
 
 use Haijin\Instantiator\Create;
 use Haijin\File_Path;
-use Haijin\Ordered_Collection;
 use Haijin\Dictionary;
 
 class Parser_Definition
 {
     protected $before_parsing_closure;
-    protected $expressions;
+    protected $expressions_by_name;
     protected $methods;
 
     /// Initializing
@@ -19,23 +18,16 @@ class Parser_Definition
     {
         $this->before_parsing_closure = null;
 
-        $this->expressions = Create::a( Ordered_Collection::class )->with();
         $this->expressions_by_name = Create::a( Dictionary::class )->with();
 
         $this->methods = Create::a( Dictionary::class )->with();
     }
-
 
     /// Accessing
 
     public function get_before_parsing_closure()
     {
         return $this->before_parsing_closure;
-    }
-
-    public function get_expressions()
-    {
-        return $this->expressions;
     }
 
     public function get_expression_named($expression_name, $absent_closure = null, $binding = null)
@@ -104,7 +96,6 @@ class Parser_Definition
 
     protected function add_expression($expression)
     {
-        $this->expressions[] = $expression;
         $this->expressions_by_name[ $expression->get_name() ] = $expression;
     }
 

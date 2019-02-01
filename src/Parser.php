@@ -27,30 +27,16 @@ class Parser
         $this->frames_stack = Create::an( Ordered_Collection::class )->with();
 
         $this->parsing_error = null;
+
+        $this->undefined = new \stdclass();
     }
 
     protected function new_context_frame()
     {
-        $context_frame = new \stdclass();
-
-        $context_frame->char_index = null;
-        $context_frame->line_index = 1;
-        $context_frame->column_index = 1;
-
-        $context_frame->current_expression = null;
-        $context_frame->current_particles_sequences =
-            Create::an( Ordered_Collection::class )->with();
-        $context_frame->expected_particles =
-            Create::an( Ordered_Collection::class )->with();
-
-        $context_frame->matched_length = 0;
-        $context_frame->handler_params = [];
-        $context_frame->result = null;
-
-        return $context_frame;
+        return Create::a( Context_Frame::class )->with();
     }
 
-    /// Parsing
+    /// Parsing inputs
 
     public function parse($file)
     {
@@ -66,65 +52,98 @@ class Parser
         $this->context_frame->line_index = 1;
         $this->context_frame->column_index = 1;
 
-        if( $this->parser_definition->get_before_parsing_closure() !== null ) {
-            $this->parser_definition->get_before_parsing_closure()->call( $this );
+        if( $this->has_before_parsing_closure() ) {
+            $this->evaluate_before_parsing_closure();
         }
-
 
         $this->begin_expression( "root" );
 
         $this->do_parsing_loop();
 
-        return $this->context_frame->handler_params[ 0 ];
+        return $this->context_frame->get_handler_params()[ 0 ];
     }
+
+    /// Parsing particles loops
 
     protected function do_parsing_loop()
     {
-        while( $this->context_frame->expected_particles->not_empty() )
+        while( $this->context_frame->has_expected_particles() )
         {
-            // No more expressions
-            if( $this->context_frame->current_expression === null ) {
+            if( ! $this->context_frame->has_current_expression() ) {
                 break;
             }
 
-            $particle = $this->context_frame->expected_particles->remove_first();
+            $particle = $this->context_frame->next_expected_particle();
 
-            if( $this->at_eof() ) {
-
-                if( is_a( $particle, End_Of_Expression_Particle::class ) ) {
-
-                    $this->parse_particle( $particle );
-                    
-                } else {
-
-                    $this->on_unexpected_particle();
-
-                }
-
-            } else {
-
-                $this->parse_particle( $particle );
-
+            if( $this->at_end_of_stream()
+                &&
+                ! is_a( $particle, End_Of_Expression_Particle::class )
+              )
+            {
+                $this->on_unexpected_particle();    
+                continue;
             }
+
+            $this->parse_particle( $particle );
         }
 
-        if( $this->not_eof() ) {
+        if( $this->not_end_of_stream() ) {
             $this->raise_unexpected_expression_error();
         }
     }
 
     public function parse_particle($particle)
     {
-        $this->context_frame->matched_length = 0;
+        $this->context_frame->set_particle_result( $this->undefined );
 
         $parsed = $particle->parse_with( $this );
 
-        if( ! $parsed ) {
-            $this->on_unexpected_particle();
-            return;
-        }
+        $result = $this->context_frame->get_particle_result();
 
-        $this->update_stream_position();
+        $this->context_frame->set_particle_result( $this->undefined );
+
+        if( $parsed ) {
+
+            if( $result !== $this->undefined ) {
+                $this->context_frame->add_handler_param( $result );
+            }
+
+        } else {
+
+            $this->on_unexpected_particle();
+
+        }
+    }
+
+    /// Expressions stack
+
+    protected function save_current_context()
+    {
+        $this->frames_stack->add( $this->context_frame );
+
+        $this->context_frame = clone $this->context_frame;
+    }
+
+    protected function restore_previous_context()
+    {
+        $this->context_frame = $this->frames_stack->remove_last();
+    }
+
+    protected function get_previous_context()
+    {
+        return $this->frames_stack->last();
+    }
+
+    /// Before parsing closure
+
+    protected function has_before_parsing_closure()
+    {
+        return $this->parser_definition->get_before_parsing_closure() !== null;
+    }
+
+    protected function evaluate_before_parsing_closure()
+    {
+        return $this->parser_definition->get_before_parsing_closure()->call( $this );        
     }
 
     /// Expressions
@@ -142,45 +161,35 @@ class Parser
 
     protected function begin_expression($expression_name)
     {
-        $this->frames_stack->add( $this->context_frame );
+        $this->save_current_context();
 
-        $this->context_frame = clone $this->context_frame;
+        $this->context_frame->set_current_expression(
+            $this->get_expression_named( $expression_name )
+        );
 
-        $this->context_frame->current_expression =
-            $this->get_expression_named( $expression_name );
+        $this->context_frame->set_expected_particles_sequences(
+            $this->context_frame->get_current_expression()->get_particle_sequences()
+        );
 
-        $this->context_frame->current_particles_sequences =
-            $this->context_frame->current_expression
-                ->get_particle_options()->collect( function ($particles_sequence) {
+        $this->context_frame->set_expected_particles(
+            $this->context_frame->next_expected_particles_sequence()
+        );
 
-                $particles_sequence = clone $particles_sequence;
-
-                $particles_sequence->add(
-                    Create::an( End_Of_Expression_Particle::class )->with()
-                );
-
-                return $particles_sequence;
-
-            });
-
-        $this->context_frame->expected_particles =
-            $this->context_frame->current_particles_sequences->remove_first();
-
-        $this->context_frame->handler_params = [];
-        $this->context_frame->result = null;
+        $this->context_frame->set_handler_params( [] );
+        $this->context_frame->set_expression_result( null );
     }
 
     protected function end_matched_expression()
     {
         $current_context = $this->context_frame;
 
-        $this->context_frame = $this->frames_stack->remove_last();
+        $this->restore_previous_context();
 
         $this->context_frame->char_index = $current_context->char_index;
         $this->context_frame->line_index = $current_context->line_index;
         $this->context_frame->column_index = $current_context->column_index;
 
-        $this->context_frame->handler_params[] = $current_context->result;
+        $this->context_frame->add_handler_param( $current_context->get_expression_result() );
 
         $this->parsing_error = null;
     }
@@ -191,21 +200,16 @@ class Parser
             throw $this->parsing_error;
         }
 
-        $this->context_frame = $this->frames_stack->remove_last();
+        $this->restore_previous_context();
 
         $this->on_unexpected_particle();
     }
 
     /// Particles
 
-    protected function is_last_particle_in_sequence()
-    {
-        return $this->context_frame->current_particles_sequences->is_empty();
-    }
-
     protected function on_unexpected_particle()
     {
-        if( $this->is_last_particle_in_sequence() ) {
+        if( ! $this->context_frame->has_expected_particles_sequences() ) {
 
             if( $this->parsing_error === null ) {
                 $this->parsing_error = $this->new_unexpected_expression_error();
@@ -221,24 +225,25 @@ class Parser
 
     protected function begin_next_particles_sequence()
     {
-        $this->context_frame->expected_particles =
-            $this->context_frame->current_particles_sequences->remove_first();
+        $this->context_frame->set_expected_particles(
+            $this->context_frame->next_expected_particles_sequence()
+        );
 
-        $previous_context = $this->frames_stack->last();
+        $previous_context = $this->get_previous_context();
 
         $this->context_frame->char_index = $previous_context->char_index;
         $this->context_frame->line_index = $previous_context->line_index;
         $this->context_frame->column_index = $previous_context->column_index;
 
-        $this->context_frame->handler_params = [];
+        $this->context_frame->set_handler_params( [] );
     }
 
     protected function end_particles_sequence()
     {
-        $handler_result = $this->context_frame->current_expression->get_handler_closure()
-            ->call( $this, ...$this->context_frame->handler_params );
+        $handler_result = $this->context_frame->get_current_expression()->get_handler_closure()
+            ->call( $this, ...$this->context_frame->get_handler_params() );
 
-        $this->context_frame->result = $handler_result;
+        $this->context_frame->set_expression_result( $handler_result );
 
         $this->end_matched_expression();
 
@@ -247,180 +252,20 @@ class Parser
 
     /// Particle methods
 
-    public function parse_symbol_particle($symbol_particle)
+    public function parse_sub_expression_particle($sub_expression_particle)
     {
-        $string = $symbol_particle->get_symbol_string();
-        $string_length = strlen( $string );
-
-        if( $this->context_frame->char_index + $string_length
-            >
-            $this->string_length
-          )
-        {
-            return false;
-        }
-
-        if( substr_compare(
-                $this->string,
-                $string,
-                $this->context_frame->char_index,
-                $string_length
-            )
-            !=
-            0
-          )
-        {
-            return false;
-        }
-
-        $this->context_frame->matched_length = strlen( $string );
-
-        $this->context_frame->handler_params[] = $string;
+        $this->begin_expression( $sub_expression_particle->get_sub_expression_name() );
 
         return true;
     }
 
-    public function parse_regex_particle($regex_particle)
+    public function parse_procedural_particle($procedural_particle)
     {
-        $matches = [];
-
-        \preg_match(
-            $regex_particle->get_regex_string() . "A",
-            $this->string,
-            $matches,
-            0,
-            $this->context_frame->char_index
-        );
-
-        if( empty( $matches ) ) {
-            return false;
-        }
-
-        $this->context_frame->matched_length = strlen( $matches[ 0 ] );
-
-        $this->context_frame->handler_params[] = isset( $matches[ 1 ] ) ?
-            $matches[ 1 ] : $matches[ 0 ];
+        return $procedural_particle->get_closure()->call( $this );
 
         return true;
     }
 
-    public function parse_multiple_regex_particle($mutliple_regex_particle)
-    {
-        $matches = [];
-
-        \preg_match(
-            $mutliple_regex_particle->get_regex_string() . "A",
-            $this->string,
-            $matches,
-            0,
-            $this->context_frame->char_index
-        );
-
-        if( empty( $matches ) ) {
-            return false;
-        }
-
-        $this->context_frame->matched_length = strlen( $matches[ 0 ] );
-
-        $this->context_frame->handler_params[] = array_slice( $matches, 1 );
-
-        return true;
-    }
-
-    public function parse_string_particle($string_particle)
-    {
-        $string = $string_particle->get_string();
-        $string_length = strlen( $string );
-
-        if( $this->context_frame->char_index + $string_length
-            >
-            $this->string_length
-          )
-        {
-            return false;
-        }
-
-        if( substr_compare(
-                $this->string,
-                $string,
-                $this->context_frame->char_index,
-                $string_length
-            )
-            !=
-            0
-          )
-        {
-            return false;
-        }
-
-        $this->context_frame->matched_length = $string_length;
-
-        return true;
-    }
-
-    public function parse_space_particle($space_particle)
-    {
-        $char = $this->string[ $this->context_frame->char_index ];
-
-        while( $char == " " ||  $char == "\t" ) {
-
-            $this->increment_char_index_by( 1 );
-            $this->increment_column_index_by( 1 );
-
-            if( $this->at_eof() ) {
-                break;
-            }
-
-            $char = $this->string[ $this->context_frame->char_index ];
-        }
-
-        return true;
-    }
-
-    public function parse_blank_particle($space_particle)
-    {
-        $char = $this->string[ $this->context_frame->char_index ];
-
-        while( $char == " " || $char == "\t" || $char == "\n" ) {
-
-            $this->increment_char_index_by( 1 );
-            $this->increment_column_index_by( 1 );
-
-            if( $char == "\n" ) {
-                $this->new_line();
-            }
-
-            if( $this->at_eof() ) {
-                break;
-            }
-
-            $char = $this->string[ $this->context_frame->char_index ];
-        }
-
-        return true;
-    }
-
-    public function parse_cr_particle($cr_particle)
-    {
-        if( $this->string[ $this->context_frame->char_index ] != "\n" ) {
-
-            return false;
-
-        }
-
-        $this->increment_char_index_by( 1 );
-
-        $this->new_line();
-
-        return true;
-    }
-
-    public function parse_expression_particle($expression_particle)
-    {
-        $this->begin_expression( $expression_particle->get_expression_name() );
-
-        return true;
-    }
 
     public function parse_end_of_expression_particle($end_of_expression_particle)
     {
@@ -431,22 +276,14 @@ class Parser
 
     /// Stream methods
 
-    protected function at_eof()
+    protected function at_end_of_stream()
     {
         return $this->context_frame->char_index >= $this->string_length;
     }
 
-    protected function not_eof()
+    protected function not_end_of_stream()
     {
         return $this->context_frame->char_index < $this->string_length;
-    }
-
-    protected function update_stream_position()
-    {
-        $this->increment_char_index_by( $this->context_frame->matched_length );
-
-        $this->increment_column_index_by( $this->context_frame->matched_length );
-
     }
 
     public function new_line()
@@ -455,14 +292,57 @@ class Parser
         $this->context_frame->column_index = 1;
     }
 
-    public function increment_char_index_by( $n )
+    public function increment_stream_by($n)
+    {
+        $this->increment_char_index_by( $n );
+        $this->increment_column_index_by( $n );
+    }
+
+    public function increment_char_index_by($n)
     {
         $this->context_frame->char_index += $n;
     }
 
-    public function increment_column_index_by( $n )
+    public function increment_column_index_by($n)
     {
         $this->context_frame->column_index += $n;
+    }
+
+    public function current_string()
+    {
+        return \substr( $this->string, $this->context_frame->char_index );
+    }
+
+    public function next_char()
+    {
+        $this->increment_stream_by( 1 );
+
+        return $this->current_char_at( -1 );
+    }
+
+    public function current_char_at($offset)
+    {
+        return $this->string[ $this->context_frame->char_index + $offset ];
+    }
+
+    public function set_result($object)
+    {
+        $this->context_frame->set_particle_result( $object );
+    }
+
+    public function current_line()
+    {
+        return $this->context_frame->line_index;
+    }
+
+    public function current_column()
+    {
+        return $this->context_frame->column_index;
+    }
+
+    public function current_char_pos()
+    {
+        return $this->context_frame->char_index;
     }
 
     /// Custom methods
@@ -476,18 +356,6 @@ class Parser
         }, $this );
 
         return $closure->call( $this, ...$params );
-    }
-
-    /// Debugging
-
-    public function current_string()
-    {
-        return \substr( $this->string, $this->context_frame->char_index );
-    }
-
-    public function current_char()
-    {
-        return $this->string[ $this->context_frame->char_index ];
     }
 
     /// Raising errors
@@ -510,7 +378,7 @@ class Parser
         );
 
         return Create::an( Unexpected_Expression_Error::class ) ->with(
-            "Unexpected expression \"{$matches[0]}\". At line: {$this->context_frame->line_index} column: {$this->context_frame->column_index}."
+            "Unexpected expression \"{$matches[0]}\". At line: {$this->current_line()} column: {$this->current_column()}."
         );
     }
 

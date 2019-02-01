@@ -17,7 +17,7 @@ class End_Of_Expression_Particle
 
     public function print_string()
     {
-        return "eoe";
+        return "end-of-expression";
     }
 
 }

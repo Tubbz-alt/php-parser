@@ -759,6 +759,8 @@ $parser->before_parsing( function() {
 <a name="c-2-7"></a>
 #### Why does the string particle exist
 
+What makes a language sintax a good sintax?
+
 <a name="c-3"></a>
 ## Running the specs
 
