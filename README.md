@@ -7,7 +7,7 @@ Framework to easily implement recursive descending parsers using a simple and ex
 [![Build Status](https://travis-ci.org/haijin-development/php-parser.svg?branch=master)](https://travis-ci.org/haijin-development/php-parser)
 [![License](https://poser.pugx.org/haijin/parser/license)](https://packagist.org/packages/haijin/parser)
 
-### Version 0.0.3
+### Version 0.1.0
 
 This library is under active development and no stable version was released yet.
 
@@ -32,6 +32,7 @@ If you like it a lot you may contribute by [financing](https://github.com/haijin
         6. [Blank particle](#c-2-4-6)
         7. [Carriage return particle](#c-2-4-7)
         8. [Expression particle](#c-2-4-8)
+        9. [Expression processor](#c-2-4-9)
     5. [Parser methods](#c-2-5)
     6. [Before parsing method](#c-2-6)
     7. [Why does the string particle exist](#c-2-7)
@@ -48,7 +49,7 @@ Include this library in your project `composer.json` file:
 
     "require-dev": {
         ...
-        "haijin/parser": "^0.0.3",
+        "haijin/parser": "^0.1.0",
         ...
     },
 
@@ -71,7 +72,7 @@ $parser_definition->define( function($parser) {
 
         $this->matcher( function() {
 
-            $this->str( "[" ) ->space() ->exp( "integer-list" ) ->space() ->str( "]" );
+            $this->str( "[" ) ->space() ->integer_list() ->space() ->str( "]" );
 
         });
 
@@ -83,15 +84,15 @@ $parser_definition->define( function($parser) {
 
     });
 
-    $parser->expression( "integer-list",  function() {
+    $parser->expression( "integer_list",  function() {
 
         $this->matcher( function() {
 
-            $this->exp( "integer" ) ->space() ->str( "," ) ->space() ->exp( "integer-list" )
+            $this->integer() ->space() ->str( "," ) ->space() ->integer_list()
 
             ->or()
 
-            ->exp( "integer" );
+            ->integer();
 
         });
 
@@ -185,7 +186,7 @@ $parser->expression( "root",  function() {
 
     $this->matcher( function() {
 
-        $this->str( "[" ) ->space() ->exp( "integer-list" ) ->space() ->str( "]" );
+        $this->str( "[" ) ->space() ->integer_list() ->space() ->str( "]" );
 
     });
 
@@ -235,7 +236,7 @@ $parser->expression( "addition",  function() {
 
     $this->matcher( function() {
 
-        $this ->exp( "integer" ) ->space() ->str( "+" ) ->space() ->exp( "integer" );
+        $this ->integer() ->space() ->str( "+" ) ->space() ->integer();
 
     });
 
@@ -251,17 +252,17 @@ $parser->expression( "addition",  function() {
 An expression can also be defined by matching the first sequence of particles among several possibilites using the `->or()` statement in its definition:
 
 ```php
-$parser->expression( "arithmetic-operation",  function() {
+$parser->expression( "arithmetic_operation",  function() {
 
     $this->matcher( function() {
 
-        $this ->exp( "addition" )
+        $this ->addition()
             ->or()
-            ->exp( "substraction" )
+            ->substraction()
             ->or()
-            ->exp( "multiplication" )
+            ->multiplication()
             ->or()
-            ->exp( "division" );
+            ->division();
 
     });
 
@@ -312,7 +313,7 @@ $parser->expression( "addition",  function() {
 
     $this->matcher( function() {
 
-        $this ->exp( "integer" ) ->space() ->str( "+" ) ->space() ->exp( "integer" );
+        $this ->integer() ->space() ->str( "+" ) ->space() ->integer();
 
     });
 
@@ -333,13 +334,13 @@ More on that on the [particles section](#c-2-4).
 As it's possible to see in the examples, the particle `exp()` matches a sub-expression also defined in the grammar. That expression may be a different one or the same, allowing to define descending recursive grammars:
 
 ```php
-$parser->expression( "integer-list",  function() {
+$parser->expression( "integer_list",  function() {
 
     $this->matcher( function() {
 
-        $this->exp( "integer" ) ->space() ->str( "," ) ->space() ->exp( "integer-list" )
+        $this->integer() ->space() ->str( "," ) ->space() ->integer_list()
         ->or()
-        ->exp( "integer" );
+        ->integer();
 
     });
 
@@ -371,7 +372,7 @@ Make simple things simple, make complex things possible.
 <a name="c-2-4"></a>
 ### Particles
 
-A particle is the smallest building piece used by the parser to parse an input. A particle matches or not a sequence of characters.
+A particle is the smallest building blocks used by the parser to parse an input. A particle matches or not a sequence of characters.
 
 There are different types of particles that combined in sequences define more sophisticated expressions in the grammar.
 
@@ -383,7 +384,7 @@ There are different types of particles that combined in sequences define more so
 Example:
 
 ```php
-$parser->expression( "additive-operand",  function() {
+$parser->expression( "additive_operand",  function() {
 
     $this->matcher( function() {
 
@@ -482,11 +483,11 @@ matches the string `"version: 1.0"` and passes it to the `handler` in a single p
 Example:
 
 ```php
-$parser->expression( "additive-operand",  function() {
+$parser->expression( "additive_operand",  function() {
 
     $this->matcher( function() {
 
-        $this->str( "[" ) ->space() ->exp( "literal-list" ) ->space() ->str( "]" );
+        $this->str( "[" ) ->space() ->literal_list() ->space() ->str( "]" );
 
     });
 
@@ -516,7 +517,7 @@ $parser->expression( "addition",  function() {
 
     $this->matcher( function() {
 
-        $this ->exp( "integer" ) ->space() ->str( "+" ) ->space() ->exp( "integer" );
+        $this ->integer() ->space() ->str( "+" ) ->space() ->integer();
 
     });
 
@@ -547,7 +548,7 @@ $parser->expression( "addition",  function() {
 
     $this->matcher( function() {
 
-        $this ->exp( "integer" ) ->blank() ->str( "+" ) ->blank() ->exp( "integer" );
+        $this ->integer() ->blank() ->str( "+" ) ->blank() ->integer();
 
     });
 
@@ -570,13 +571,13 @@ matches the strings `"3+4"`, `"3 + 4"`, `"3\n+\n4"`, etc.
 Example:
 
 ```php
-$parser->expression( "integer-list",  function() {
+$parser->expression( "integer_list",  function() {
 
     $this->matcher( function() {
 
-        $this->exp( "integer" ) ->cr() ->exp( "integer-list" )
+        $this->integer() ->cr() ->integer_list()
         ->or()
-        ->exp( "integer" );
+        ->integer();
 
     });
 
@@ -596,9 +597,11 @@ $parser->expression( "integer-list",  function() {
 matches the strings `"1"`, `"1\n2"`, `"1\n2\n3"`, etc.
 
 <a name="c-2-4-8"></a>
-#### Expression particle
+#### Sub-expression particle
 
-`exp` particle matches a sub-expression defined in the same grammar and passes the result of the sub-expression `handler` to its handler as the parameter.
+A sub-expression particle matches a sub-expression defined in the same grammar and passes the result of the sub-expression `handler` evaluation to its own handler as the parameter.
+
+To evaluate a sub-expression call the method with the subexpression name.
 
 If the sub-expression is not defined in the grammar the parser will raise an `Haijin\Parser\Expression_Not_Found_Error`.
 
@@ -609,7 +612,7 @@ $parser->expression( "addition",  function() {
 
     $this->matcher( function() {
 
-        $this ->exp( "integer" ) ->space() ->str( "+" ) ->space() ->exp( "integer" );
+        $this ->integer() ->space() ->str( "+" ) ->space() ->integer();
 
     });
 
@@ -629,11 +632,11 @@ The sub-expression can be the same expression being defined, allowing to perform
 Example:
 
 ```php
-$parser->expression( "literal-array",  function() {
+$parser->expression( "literal_array",  function() {
 
     $this->matcher( function() {
 
-        $this->str( "[" ) ->space() ->exp( "literal-list" ) ->space() ->str( "]" );
+        $this->str( "[" ) ->space() ->literal_list() ->space() ->str( "]" );
 
     });
 
@@ -645,15 +648,15 @@ $parser->expression( "literal-array",  function() {
 
 });
 
-$parser->expression( "literal-list",  function() {
+$parser->expression( "literal_list",  function() {
 
     $this->matcher( function() {
 
-        $this->exp( "literal" ) ->space() ->str( "," ) ->space() ->exp( "literal-list" )
+        $this->literal() ->space() ->str( "," ) ->space() ->literal_list()
 
         ->or()
 
-        ->exp( "literal" );
+        ->literal();
 
     });
 
@@ -675,15 +678,15 @@ $parser->expression( "literal",  function() {
 
     $this->matcher( function() {
 
-        $this ->exp( "literal-string" )
+        $this ->literal_string()
         ->or()
-        ->exp( "literal-integer" )
+        ->literal_integer()
         ->or()
-        ->exp( "literal-double" )
+        ->literal_double()
         ->or()
-        ->exp( "literal-bool" )
+        ->literal_bool()
         ->or()
-        ->exp( "literal-null" );
+        ->literal_null();
 
     });
 
@@ -701,21 +704,212 @@ $parser->expression( "literal",  function() {
 matches the strings `"[ true, false, null ]"`, `"[1, "1", 1.0]`", etc.
 
 
+If for any reason the sub-expression name is not a valid PHP method name, you can call the sub-expression explicitly with `->exp($sub_expression_name)`:
+
+```php
+$parser->expression( "literal-array",  function() {
+
+    $this->matcher( function() {
+
+        $this->str( "[" ) ->space() ->exp( "literal-list" ) ->space() ->str( "]" );
+
+    });
+
+    $this->handler( function($values) {
+
+        return array_sum( $values );
+
+    });
+
+});
+```
+
+Hoewever defining sub-expressions with `exp` rather than calling the sub-expression as a method is **not** more efficient for the parser. Expression definitions and sequences of expected particles are built during the definition of the grammar given to a `Haijin\Parser\Parser` object, not during the parsing process.
+
+<a name="c-2-4-9"></a>
+#### Expression processor
+
+By combining the previous particles it is possible to define sophisticated grammars.
+
+Regular expressions are usually evaluated in an very optimized low level library written in C so they should be quite efficient. Also regular expressions are a well known and standarized language implemented in every single other computer language. There is plenty of documentation and tutorials on regular expressions developers can find.
+
+All these reasons make regular expressions a possible good choice for defining the base particles for a grammar (which are called `tokens` in the programming language parsing literature).
+
+However, expressing some very simple patterns in regular expressions can sometimes be quite difficult and complex. Also, in dispite of being a well known and an accepted standard, the are very unintuitive, they have a huge learning curve, they are not expressive and expressing patterns with regular expressions is very error prone.
+
+The use of the greedy patter `.*` makes writting regular expressions more complex than what it should be. Some simple patterns like capturing a quoted string with escaped characters including quotes can be a nightmare to get it right and to debug it.
+
+On the other hand, thinking how to solve these kind of patterns with procedural processing of a stream using loops and logical conditionals is often quite simple.
+
+So, from a cognitive point of view, the standard and well known regular expressions language can be a bad solution to parse an input stream.
+
+To cope with this lack of expresiveness of the standard regular expressions language, haijin/parser allows to directly parse the input stream in a `processor($closure)` method of an expression but hiding from the developer most of the parsing boiler part related with complex combinations of patterns, like backtracking failed patterns and moving between sequences of patterns.
+
+Example:
+
+```php
+$parser->expression( "string_literal",  function() {
+
+    $this->processor( function() {
+
+        $char = $this->next_char();
+
+        // If it does not start with a quote it's not a string literal.
+        if( $char != '"' ) {
+            return false;
+        }
+
+
+        $literal = "";
+        $scaping_next = false;
+
+        while( $this->not_end_of_stream() ) {
+
+            $char = $this->next_char();
+
+            if( $scaping_next === true ) {
+                $literal .= $char;
+
+                $scaping_next = false;
+                continue;
+            }
+
+            if( $char == '\\' ) {
+                $scaping_next = true;
+                continue;
+            }
+
+            // If it is an unescaped quote it is the end of the literal string.
+            if( $char == '"' ) {
+                break;
+            }
+
+            $literal .= $char;
+        }
+
+        // Set the parsed string as the result
+        $this->set_result( $literal );
+
+        // return true if the particle was a match, false otherwise.
+        return true;
+
+    });
+
+    $this->handler( function($string) {
+
+        return $string;
+
+    });
+
+});
+```
+
+This example implements parsing a string literal with escaped characters. It's much more verbose than a regular expression but it is also much more expressive, debuggeable and clear.
+
+Expressions defined with `processor` method instead of `match` can be used in other expressions just like any other particle.
+
+When parsing expressions using `processor` the developer must handle the stream correctly.
+
+In order to do that the parser provides the following protocol to parse a particle:
+
+```php
+/// Stream methods
+
+/**
+ * Returns true if the stream is beyond its last char, false otherwise.
+ */
+protected function at_end_of_stream();
+
+/**
+ * Returns true if the stream has further chars, false otherwise.
+ */
+protected function not_end_of_stream();
+
+/**
+ * Increments by one the input line counter and resets the column counter to 1.
+ *
+ * Called this method when the parser encounters a "\n" character in order
+ * to keep track of the correct line and column indices used in error messages.
+ *
+ * If this method is not properly called, the parser will still correctly parse
+ * valid inputs but the error messages for invalid inputs will be invalid.
+ */
+public function new_line();
+
+/**
+ * Increments the stream pointer and the column counter by $n.
+ *
+ * Use these method to move backwards or foreward in the stream skipping chars.
+ */
+public function skip_chars($n);
+
+/**
+ * Returns the tail of the stream which has not been parsed yet.
+ *
+ * Use this method only to debug the parsing process. Using it for the actual
+ * parsing of the input will probably be very inneficient.
+ */
+public function current_string();
+
+/**
+ * Returns the current char in the stream and moves forward the stream pointer by one.
+ */
+public function next_char();
+
+/**
+ * Returns the current char in the stream. Does not modify the stream.
+ */
+public function peek_char();
+
+/**
+ * Returns the char at an $offset from its current position. Does not modify the stream.
+ */
+public function peek_char_at($offset);
+
+/**
+ * Sets the result of the particle to be an $object.
+ *
+ * The result of a particle can be any object, it does not need to be the actual parsed
+ * input.
+ */
+public function set_result($object);
+
+/**
+ * Returns the current line index.
+ *
+ * Use this method for debugging and error messages.
+ */
+public function current_line();
+
+/**
+ * Returns the current column index in the current line.
+ *
+ * Use this method for debugging and for error messages.
+ */
+public function current_column();
+```
+
+The return value of the `processor` closure must be `true` if the stream completely matched the expression or false otherwise. If the stream did not completely match the expression it's not necesary to restore the stream pointers and indices nor to clean up partial results set for that particle. The parser does the backtraking in the grammar tree and continues to search for a matching expression on the next sequence of particles.
+
+
+As the grammar DSL is plain PHP code, beside the parser stream protocol it's also possible to call any PHP method and use any PHP feature during the parsing of the input stream, including any string and regex functions, loops, conditionals, etc.
+
+
 <a name="c-2-5"></a>
 ### Parser methods
 
 Define methods and call them from within the `handlers` with:
 
 ```php
-$parser->expression( "literal-list",  function() {
+$parser->expression( "literal_list",  function() {
 
     $this->matcher( function() {
 
-        $this->exp( "literal" ) ->space() ->str( "," ) ->space() ->exp( "literal-list" )
+        $this->literal() ->space() ->str( "," ) ->space() ->literal_list()
 
         ->or()
 
-        ->exp( "literal" );
+        ->literal();
 
     });
 
@@ -757,9 +951,9 @@ $parser->before_parsing( function() {
 ```
 
 <a name="c-2-7"></a>
-#### Why does the string particle exist
+### Why does the string particle exist
 
-What makes a language sintax a good sintax?
+What makes a computer language sintax a good sintax?
 
 <a name="c-3"></a>
 ## Running the specs

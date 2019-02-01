@@ -276,23 +276,43 @@ class Parser
 
     /// Stream methods
 
+    /**
+     * Returns true if the stream is beyond its last char, false otherwise.
+     */
     protected function at_end_of_stream()
     {
         return $this->context_frame->char_index >= $this->string_length;
     }
 
+    /**
+     * Returns true if the stream has further chars, false otherwise.
+     */
     protected function not_end_of_stream()
     {
         return $this->context_frame->char_index < $this->string_length;
     }
 
+    /**
+     * Increments by one the input line counter and resets the column counter to 1.
+     *
+     * Called this method when the parser encounters a "\n" character in order
+     * to keep track of the correct line and column indices used in error messages.
+     *
+     * If this method is not properly called, the parser will still correctly parse
+     * valid inputs but the error messages for invalid inputs will be invalid.
+     */
     public function new_line()
     {
         $this->context_frame->line_index += 1;
         $this->context_frame->column_index = 1;
     }
 
-    public function increment_stream_by($n)
+    /**
+     * Increments the stream pointer and the column counter by $n.
+     *
+     * Use these method to move backwards or foreward in the stream skipping chars.
+     */
+    public function skip_chars($n)
     {
         $this->increment_char_index_by( $n );
         $this->increment_column_index_by( $n );
@@ -308,33 +328,69 @@ class Parser
         $this->context_frame->column_index += $n;
     }
 
+    /**
+     * Returns the tail of the stream which has not been parsed yet.
+     *
+     * Use this method only to debug the parsing process. Using it for the actual
+     * parsing of the input will probably be very inneficient.
+     */
     public function current_string()
     {
         return \substr( $this->string, $this->context_frame->char_index );
     }
 
+    /**
+     * Returns the current char in the stream and moves forward the stream pointer by one.
+     */
     public function next_char()
     {
-        $this->increment_stream_by( 1 );
+        $this->skip_chars( 1 );
 
-        return $this->current_char_at( -1 );
+        return $this->peek_char_at( -1 );
     }
 
-    public function current_char_at($offset)
+    /**
+     * Returns the current char in the stream. Does not modify the stream.
+     */
+    public function peek_char()
+    {
+        return $this->peek_char_at( 0 );
+    }
+
+    /**
+     * Returns the char at an $offset from its current position. Does not modify the stream.
+     */
+    public function peek_char_at($offset)
     {
         return $this->string[ $this->context_frame->char_index + $offset ];
     }
 
+    /**
+     * Sets the result of the particle to be an $object.
+     *
+     * The result of a particle can be any object, it does not need to be the actual parsed
+     * input.
+     */
     public function set_result($object)
     {
         $this->context_frame->set_particle_result( $object );
     }
 
+    /**
+     * Returns the current line index.
+     *
+     * Use this method for debugging and for error messages.
+     */
     public function current_line()
     {
         return $this->context_frame->line_index;
     }
 
+    /**
+     * Returns the current column index in the current line.
+     *
+     * Use this method for debugging and for error messages.
+     */
     public function current_column()
     {
         return $this->context_frame->column_index;

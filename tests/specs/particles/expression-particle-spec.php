@@ -19,7 +19,7 @@ $spec->describe( "When matching an expression particle", function() {
 
                 $this->matcher( function() {
 
-                    $this->exp( "integer" );
+                    $this->integer();
 
                 });
 

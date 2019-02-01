@@ -19,7 +19,7 @@ $spec->describe( "When matching a compound particles expression", function() {
 
                 $this->matcher( function() {
 
-                    $this->exp( "integer" ) ->str( "+" ) ->exp( "integer" );
+                    $this->integer() ->str( "+" ) ->integer();
 
                 });
 

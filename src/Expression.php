@@ -87,7 +87,7 @@ class Expression
                 return false;
             }
 
-            $this->increment_stream_by( strlen( $matches[ 0 ] ) );
+            $this->skip_chars( strlen( $matches[ 0 ] ) );
             $this->set_result( array_slice( $matches, 1 ) );
 
             return true;
@@ -115,7 +115,7 @@ class Expression
                 return false;
             }
 
-            $this->increment_stream_by( strlen( $matches[ 0 ] ) );
+            $this->skip_chars( strlen( $matches[ 0 ] ) );
 
             $this->set_result(
                 isset( $matches[ 1 ] ) ? $matches[ 1 ] : $matches[ 0 ]
@@ -164,7 +164,7 @@ class Expression
                 return false;
             }
 
-            $this->increment_stream_by(  $string_length );
+            $this->skip_chars(  $string_length );
 
             return true;
 
@@ -200,7 +200,7 @@ class Expression
                 return false;
             }
 
-            $this->increment_stream_by( strlen( $string ) );
+            $this->skip_chars( strlen( $string ) );
 
             $this->set_result( $string );
 
@@ -215,17 +215,17 @@ class Expression
     {
         $this->proc( function() {
 
-            $char = $this->current_char_at( 0 );
+            $char = $this->string[ $this->context_frame->char_index ];
 
             while( $char == " " ||  $char == "\t" ) {
 
-                $this->increment_stream_by( 1 );
+                $this->skip_chars( 1 );
 
                 if( $this->at_end_of_stream() ) {
-                    break;
+                    return true;
                 }
 
-                $char = $this->current_char_at( 0 );
+                $char = $this->string[ $this->context_frame->char_index ];
             }
 
             return true;
@@ -243,7 +243,7 @@ class Expression
 
             while( $char == " " || $char == "\t" || $char == "\n" ) {
 
-                $this->increment_stream_by( 1 );
+                $this->skip_chars( 1 );
 
                 if( $char == "\n" ) {
                     $this->new_line();
@@ -273,7 +273,7 @@ class Expression
 
             }
 
-            $this->increment_stream_by( 1 );
+            $this->skip_chars( 1 );
 
             $this->new_line();
 
@@ -312,7 +312,7 @@ class Expression
         $this->particle_sequences->last()->add( $particle );
     }
 
-    public function __call($method_name, $params )
+    public function __call($method_name, $params)
     {
         return $this->exp( $method_name );
     }

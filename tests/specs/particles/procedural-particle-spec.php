@@ -33,21 +33,17 @@ $spec->describe( "When matching a procedural particle", function() {
 
                 $this->processor( function() {
 
-                    while( true ) {
+                    if( $this->peek_char() == "#" ) {
 
-                        if( $this->at_end_of_stream() ) {
-                            return false;
-                        }
+                        $this->set_result( "#" );
 
-                        $char = $this->next_char();
+                        $this->next_char();
 
-                        if( $char == "#" ) {
-                            $this->set_result( "#" );
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return true;
+
                     }
+
+                    return false;
 
                 });
 
@@ -61,19 +57,15 @@ $spec->describe( "When matching a procedural particle", function() {
 
     });
 
-    $this->describe( "with no spaces", function() {
+    $this->let( "input", function() {
+        return "#";
+    });
 
-        $this->let( "input", function() {
-            return "#";
-        });
+    $this->it( "parses the input stream", function() {
 
-        $this->it( "the expresion is valid", function() {
+        $result = $this->parser->parse_string( $this->input );
 
-            $result = $this->parser->parse_string( $this->input );
-
-            $this->expect( $result ) ->to() ->equal( "#" );
-
-        });
+        $this->expect( $result ) ->to() ->equal( "#" );
 
     });
 

@@ -19,7 +19,7 @@ $spec->describe( "When matching recursive expressions", function() {
 
                 $this->matcher( function() {
 
-                    $this->str( "[" ) ->exp( "integer-list" ) ->str( "]" );
+                    $this->str( "[" ) ->integer_list() ->str( "]" );
 
                 });
 
@@ -31,13 +31,13 @@ $spec->describe( "When matching recursive expressions", function() {
 
             });
 
-            $parser->expression( "integer-list",  function() {
+            $parser->expression( "integer_list",  function() {
 
                 $this->matcher( function() {
 
-                    $this->exp( "integer" ) ->str( "," ) ->exp( "integer-list" )
+                    $this->integer() ->str( "," ) ->integer_list()
                     ->or()
-                    ->exp( "integer" );
+                    ->integer();
 
                 });
 

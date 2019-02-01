@@ -19,7 +19,7 @@ $spec->describe( "When matching a particle among several", function() {
 
                 $this->matcher( function() {
 
-                    $this->exp( "integer" ) ->or() ->exp( "alpha" ) ->or() ->str( "#" );
+                    $this->integer() ->or() ->alpha() ->or() ->str( "#" );
 
                 });
 
