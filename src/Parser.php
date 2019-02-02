@@ -240,10 +240,17 @@ class Parser
 
     protected function end_particles_sequence()
     {
-        $handler_result = $this->context_frame->get_current_expression()->get_handler_closure()
-            ->call( $this, ...$this->context_frame->get_handler_params() );
+        $handler_closure = $this->context_frame->get_current_expression()->get_handler_closure();
 
-        $this->context_frame->set_expression_result( $handler_result );
+        if( $handler_closure !== null ) {
+
+            $handler_result = $handler_closure ->call(
+                $this,
+                ...$this->context_frame->get_handler_params()
+            );
+
+            $this->context_frame->set_expression_result( $handler_result );
+        }
 
         $this->end_matched_expression();
 
@@ -295,7 +302,7 @@ class Parser
     /**
      * Increments by one the input line counter and resets the column counter to 1.
      *
-     * Called this method when the parser encounters a "\n" character in order
+     * Call this method when the parser encounters a "\n" character in order
      * to keep track of the correct line and column indices used in error messages.
      *
      * If this method is not properly called, the parser will still correctly parse
