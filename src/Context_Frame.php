@@ -17,6 +17,7 @@ class Context_Frame
 
     protected $handler_params;
     protected $expression_result;
+    protected $expression_is_optional;
     protected $particle_result;
 
     /// Initializing
@@ -33,6 +34,7 @@ class Context_Frame
 
         $this->handler_params = [];
         $this->expression_result = null;
+        $this->expression_is_optional = false;
     }
 
     /// Expected expression
@@ -113,6 +115,16 @@ class Context_Frame
     public function get_expression_result()
     {
         return $this->expression_result;
+    }
+
+    public function set_expression_is_optional($is_optional)
+    {
+        $this->expression_is_optional = $is_optional;
+    }
+
+    public function expression_is_optional()
+    {
+        return $this->expression_is_optional;
     }
 
     /// Particle result

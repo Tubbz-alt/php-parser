@@ -110,18 +110,21 @@ class Parser
                 $this->context_frame->add_handler_param( $result );
             }
 
-        } elseif( $particle->is_optional() ) {
+        } else {
+
+            if( $particle->is_optional() ) {
 
                 $this->context_frame = $saved_context;
 
                 $this->context_frame->add_handler_param( null );
 
-        } else {
+            } else {
 
-            $this->context_frame->set_particle_result( $this->undefined );
+                $this->context_frame->set_particle_result( $this->undefined );
 
-            $this->on_unexpected_particle();
+                $this->on_unexpected_particle();
 
+            }
         }
     }
 
@@ -169,7 +172,7 @@ class Parser
         }, $this );
     }
 
-    protected function begin_expression($expression_name)
+    protected function begin_expression($expression_name, $is_optional = false)
     {
         $this->save_current_context();
 
@@ -187,6 +190,7 @@ class Parser
 
         $this->context_frame->set_handler_params( [] );
         $this->context_frame->set_expression_result( null );
+        $this->context_frame->set_expression_is_optional( $is_optional );
     }
 
     protected function end_matched_expression()
@@ -206,6 +210,17 @@ class Parser
 
     protected function end_unmatched_expression()
     {
+        if( $this->context_frame->expression_is_optional() ) {
+
+            $this->restore_previous_context();
+
+            $this->context_frame->add_handler_param( null );
+
+            $this->parsing_error = null;
+
+            return;
+        }
+
         if( $this->frames_stack->is_empty() ) {
             throw $this->parsing_error;
         }
@@ -271,7 +286,10 @@ class Parser
 
     public function parse_sub_expression_particle($sub_expression_particle)
     {
-        $this->begin_expression( $sub_expression_particle->get_sub_expression_name() );
+        $this->begin_expression(
+            $sub_expression_particle->get_sub_expression_name(),
+            $sub_expression_particle->is_optional()
+        );
 
         return true;
     }
