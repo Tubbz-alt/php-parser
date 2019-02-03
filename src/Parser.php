@@ -77,7 +77,7 @@ class Parser
 
             if( $this->at_end_of_stream()
                 &&
-                ! is_a( $particle, End_Of_Expression_Particle::class )
+                ! $particle->matches_eos()
               )
             {
                 $this->on_unexpected_particle();    
@@ -279,8 +279,74 @@ class Parser
     public function parse_procedural_particle($procedural_particle)
     {
         return $procedural_particle->get_closure()->call( $this );
+    }
+
+    public function parse_blank_particle($blank_particle)
+    {
+        if( $this->at_end_of_stream() ) {
+            return true;
+        }
+
+        $char = $this->peek_char( 0 );
+
+        while( $char == " " || $char == "\t" || $char == "\n" ) {
+
+            if( $char == "\n" ) {
+                $this->new_line();
+            }
+
+            $this->skip_chars( 1 );
+
+            if( $this->at_end_of_stream() ) {
+                break;
+            }
+
+            $char = $this->peek_char( 0 );
+        }
 
         return true;
+    }
+
+    public function parse_space_particle($space_particle)
+    {
+        if( $this->at_end_of_stream() ) {
+            return true;
+        }
+
+        $char = $this->peek_char( 0 );
+
+        while( $char == " " || $char == "\t" ) {
+
+            $this->skip_chars( 1 );
+
+            if( $this->at_end_of_stream() ) {
+                break;
+            }
+
+            $char = $this->peek_char( 0 );
+        }
+
+        return true;
+    }
+
+    public function parse_eos_particle($eos_particle)
+    {
+        return $this->at_end_of_stream();
+    }
+
+    public function parse_eol_particle($eol_particle)
+    {
+        if( $this->at_end_of_stream() ) {
+            return true;
+        }
+
+        if( $this->peek_char() == "\n" ) {
+            $this->skip_chars( 1 );
+            $this->new_line();
+            return true;
+        }
+
+        return false;
     }
 
     public function parse_end_of_expression_particle($end_of_expression_particle)
@@ -439,18 +505,31 @@ class Parser
 
     protected function new_unexpected_expression_error()
     {
-        $matches = [];
+        if( $this->at_end_of_stream() ) {
 
-        preg_match(
-            "/.*(?=\n?)/A",
-            $this->string,
-            $matches,
-            0,
-            $this->context_frame->char_index
-        );
+            $expression = "end of stream";
+
+        } elseif( $this->peek_char() == "\n" ) {
+
+            $expression = '"\\n"';
+
+        } else {
+
+            $matches = [];
+
+            preg_match(
+                "/.*(?=\n?)/A",
+                $this->string,
+                $matches,
+                0,
+                $this->context_frame->char_index
+            );
+
+            $expression = "expression \"{$matches[0]}\"";
+        }
 
         return Create::an( Unexpected_Expression_Error::class ) ->with(
-            "Unexpected expression \"{$matches[0]}\". At line: {$this->current_line()} column: {$this->current_column()}."
+            "Unexpected {$expression}. At line: {$this->current_line()} column: {$this->current_column()}."
         );
     }
 

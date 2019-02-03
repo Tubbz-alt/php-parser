@@ -4,32 +4,22 @@ namespace Haijin\Parser;
 
 use Haijin\Instantiator\Create;
 
-class Procedural_Particle
+class Procedural_Particle extends Particle
 {
     protected $closure;
-    protected $is_optional;
 
     /// Initializing
 
     public function __construct($closure)
     {
+        parent::__construct();
+
         $this->closure = $closure;
-        $this->is_optional = false;
     }
 
     public function get_closure()
     {
         return $this->closure;
-    }
-
-    public function be_optional()
-    {
-        $this->is_optional = true;
-    }
-
-    public function is_optional()
-    {
-        return $this->is_optional;
     }
 
     /// Parsing

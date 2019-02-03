@@ -11,21 +11,25 @@ $spec->describe( "When matching a symbol particle", function() {
 
     });
 
-    $this->let( "parser_definition", function() {
+    $this->describe( "at the beginning of an expression", function() {
 
-        return ( new Parser_Definition() )->define( function($parser) {
+        $this->let( "parser_definition", function() {
 
-            $parser->expression( "root",  function() {
+            return ( new Parser_Definition() )->define( function($parser) {
 
-                $this->matcher( function() {
+                $parser->expression( "root",  function() {
 
-                    $this->sym( "123" );
+                    $this->matcher( function() {
 
-                });
+                        $this->sym( "123" ) ->str( "321" );
 
-                $this->handler( function($symbol) {
+                    });
 
-                    return $symbol;
+                    $this->handler( function($string) {
+
+                        return $string;
+
+                    });
 
                 });
 
@@ -33,70 +37,232 @@ $spec->describe( "When matching a symbol particle", function() {
 
         });
 
+        $this->describe( "matches a valid expression", function() {
+
+            $this->let( "input", function() {
+                return "123321";
+            });
+
+            $this->it( "evaluates the handler closure", function() {
+
+                $result = $this->parser->parse_string( $this->input );
+
+                $this->expect( $result ) ->to() ->equal( "123" );
+
+            });
+
+        });
+
+        $this->describe( "fails for an invalid expression", function() {
+
+            $this->let( "input", function() {
+                return "1321";
+            });
+
+            $this->it( "raises an error", function() {
+
+                $this->expect( function() {
+
+                    $this->parser->parse_string( $this->input );
+
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
+
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "1321". At line: 1 column: 1.'
+                        );
+                }); 
+
+            });
+
+        });
+
+        $this->describe( "fails for an invalid next particle", function() {
+
+            $this->let( "input", function() {
+                return "1233";
+            });
+
+            $this->it( "raises an error", function() {
+
+                $this->expect( function() {
+
+                    $this->parser->parse_string( $this->input );
+
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
+
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "3". At line: 1 column: 4.'
+                        );
+                }); 
+
+            });
+
+        });
+
     });
 
-    $this->describe( "for each matched expression found", function() {
+    $this->describe( "in the middle of an expression", function() {
 
-        $this->let( "input", function() {
-            return "123";
+        $this->let( "parser_definition", function() {
+
+            return ( new Parser_Definition() )->define( function($parser) {
+
+                $parser->expression( "root",  function() {
+
+                    $this->matcher( function() {
+
+                        $this->str( "1" ) ->sym( "2" )  ->str( "3" );
+
+                    });
+
+                    $this->handler( function($string) {
+
+                        return $string;
+
+                    });
+
+                });
+
+            });
+
         });
 
-        $this->it( "evaluates the handler closure", function() {
+        $this->describe( "matches a valid expression", function() {
 
-            $result = $this->parser->parse_string( $this->input );
+            $this->let( "input", function() {
+                return "123";
+            });
 
-            $this->expect( $result ) ->to() ->equal( "123" );
+            $this->it( "evaluates the handler closure", function() {
+
+                $result = $this->parser->parse_string( $this->input );
+
+                $this->expect( $result ) ->to() ->equal( "2" );
+
+            });
+
+        });
+
+        $this->describe( "fails for an invalid expression", function() {
+
+            $this->let( "input", function() {
+                return "1z3";
+            });
+
+            $this->it( "raises an error", function() {
+
+                $this->expect( function() {
+
+                    $this->parser->parse_string( $this->input );
+
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
+
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "z3". At line: 1 column: 2.'
+                        );
+                }); 
+
+            });
+
+        });
+
+        $this->describe( "fails for an invalid next particle", function() {
+
+            $this->let( "input", function() {
+                return "12z";
+            });
+
+            $this->it( "raises an error", function() {
+
+                $this->expect( function() {
+
+                    $this->parser->parse_string( $this->input );
+
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
+
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "z". At line: 1 column: 3.'
+                        );
+                }); 
+
+            });
 
         });
 
     });
 
+    $this->describe( "at the end of an expression", function() {
 
-    $this->describe( "for an unexpected expression at the beginning", function() {
+        $this->let( "parser_definition", function() {
 
-        $this->let( "input", function() {
-            return "a123";
+            return ( new Parser_Definition() )->define( function($parser) {
+
+                $parser->expression( "root",  function() {
+
+                    $this->matcher( function() {
+
+                        $this->str( "321" ) ->sym( "123" );
+
+                    });
+
+                    $this->handler( function($string) {
+
+                        return $string;
+
+                    });
+
+                });
+
+            });
+
         });
 
-        $this->it( "raises an error", function() {
+        $this->describe( "matches a valid expression", function() {
 
-            $this->expect( function() {
+            $this->let( "input", function() {
+                return "321123";
+            });
 
-                $this->parser->parse_string( $this->input );
+            $this->it( "evaluates the handler closure", function() {
 
-            }) ->to() ->raise(
-                \Haijin\Parser\Unexpected_Expression_Error::class,
-                function($error) {
+                $result = $this->parser->parse_string( $this->input );
 
-                    $this->expect( $error->getMessage() ) ->to() ->equal(
-                        'Unexpected expression "a123". At line: 1 column: 1.'
-                    );
-            }); 
+                $this->expect( $result ) ->to() ->equal( "123" );
+
+            });
 
         });
 
-    });
+        $this->describe( "fails for an invalid expression", function() {
 
-    $this->describe( "for an unexpected expression after an expected expression", function() {
+            $this->let( "input", function() {
+                return "3211";
+            });
 
-        $this->let( "input", function() {
-            return "123a";
-        });
+            $this->it( "raises an error", function() {
 
-        $this->it( "raises an error", function() {
+                $this->expect( function() {
 
-            $this->expect( function() {
+                    $this->parser->parse_string( $this->input );
 
-                $this->parser->parse_string( $this->input );
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
 
-            }) ->to() ->raise(
-                \Haijin\Parser\Unexpected_Expression_Error::class,
-                function($error) {
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "1". At line: 1 column: 4.'
+                        );
+                }); 
 
-                    $this->expect( $error->getMessage() ) ->to() ->equal(
-                        'Unexpected expression "a". At line: 1 column: 4.'
-                    );
-            }); 
+            });
 
         });
 

@@ -4,17 +4,17 @@ namespace Haijin\Parser;
 
 use Haijin\Instantiator\Create;
 
-class Sub_Expression_Particle
+class Sub_Expression_Particle extends Particle
 {
     protected $sub_expression_name;
-    protected $is_optional;
 
     /// Initializing
 
     public function __construct($expression_name)
     {
+        parent::__construct();
+
         $this->sub_expression_name = $expression_name;
-        $this->is_optional = false;
     }
 
     /// Accessing
@@ -22,16 +22,6 @@ class Sub_Expression_Particle
     public function get_sub_expression_name()
     {
         return $this->sub_expression_name;
-    }
-
-    public function be_optional()
-    {
-        $this->is_optional = true;
-    }
-
-    public function is_optional()
-    {
-        return $this->is_optional;
     }
 
     /// Parsing

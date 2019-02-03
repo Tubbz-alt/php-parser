@@ -11,37 +11,41 @@ $spec->describe( "When matching an expression particle", function() {
 
     });
 
-    $this->let( "parser_definition", function() {
+    $this->describe( "at the beginning of a expression", function() {
 
-        return ( new Parser_Definition() )->define( function($parser) {
+        $this->let( "parser_definition", function() {
 
-            $parser->expression( "root",  function() {
+            return ( new Parser_Definition() )->define( function($parser) {
 
-                $this->matcher( function() {
+                $parser->expression( "root",  function() {
 
-                    $this->integer();
+                    $this->matcher( function() {
 
-                });
+                        $this ->integer() ->str( "abc" );
 
-                $this->handler( function($integer) {
+                    });
 
-                    return $integer;
+                    $this->handler( function($integer) {
 
-                });
+                        return $integer;
 
-            });
-
-            $parser->expression( "integer",  function() {
-
-                $this->matcher( function() {
-
-                    $this->regex( "/([0-9]+)/" );
+                    });
 
                 });
 
-                $this->handler( function($integer_string) {
+                $parser->expression( "integer",  function() {
 
-                    return (int) $integer_string;
+                    $this->matcher( function() {
+
+                        $this->regex( "/([0-9]+)/" );
+
+                    });
+
+                    $this->handler( function($integer_string) {
+
+                        return (int) $integer_string;
+
+                    });
 
                 });
 
@@ -49,80 +53,213 @@ $spec->describe( "When matching an expression particle", function() {
 
         });
 
-    });
+        $this->it( "passes for a valid expression", function() {
 
-    $this->describe( "for each matched expression found", function() {
-
-        $this->let( "input", function() {
-            return "123";
-        });
-
-        $this->it( "evaluates the handler closure", function() {
-
-            $result = $this->parser->parse_string( $this->input );
+            $result = $this->parser->parse_string( "123abc" );
 
             $this->expect( $result ) ->to() ->be( "===" ) ->than( 123 );
 
         });
 
+        $this->describe( "fails if the sub-expression does not match", function() {
+
+            $this->let( "input", function() {
+                return "abcz";
+            });
+
+            $this->it( "raises an error", function() {
+
+                $this->expect( function() {
+
+                    $this->parser->parse_string( $this->input );
+
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
+
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "abcz". At line: 1 column: 1.'
+                        );
+                }); 
+
+            });
+
+        });
+
+        $this->describe( "fails if the following particle does not match", function() {
+
+            $this->let( "input", function() {
+                return "123a";
+            });
+
+            $this->it( "raises an error", function() {
+
+                $this->expect( function() {
+
+                    $this->parser->parse_string( $this->input );
+
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
+
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "a". At line: 1 column: 4.'
+                        );
+                }); 
+
+            });
+
+        });
+
     });
 
+    $this->describe( "in the middle of an expression", function() {
 
-    $this->describe( "for an unexpected expression at the beginning", function() {
+        $this->let( "parser_definition", function() {
 
-        $this->let( "input", function() {
-            return "a123";
+            return ( new Parser_Definition() )->define( function($parser) {
+
+                $parser->expression( "root",  function() {
+
+                    $this->matcher( function() {
+
+                        $this ->str( "abc" ) ->integer() ->str( "cba" ); 
+
+                    });
+
+                    $this->handler( function($integer) {
+
+                        return $integer;
+
+                    });
+
+                });
+
+                $parser->expression( "integer",  function() {
+
+                    $this->matcher( function() {
+
+                        $this->regex( "/([0-9]+)/" );
+
+                    });
+
+                    $this->handler( function($integer_string) {
+
+                        return (int) $integer_string;
+
+                    });
+
+                });
+
+            });
+
         });
 
-        $this->it( "raises an error", function() {
+        $this->it( "passes for a valid expression", function() {
 
-            $this->expect( function() {
+            $result = $this->parser->parse_string( "abc123cba" );
 
-                $this->parser->parse_string( $this->input );
+            $this->expect( $result ) ->to() ->be( "===" ) ->than( 123 );
 
-            }) ->to() ->raise(
-                \Haijin\Parser\Unexpected_Expression_Error::class,
-                function($error) {
+        });
 
-                    $this->expect( $error->getMessage() ) ->to() ->equal(
-                        'Unexpected expression "a123". At line: 1 column: 1.'
-                    );
-            }); 
+        $this->describe( "fails if the sub-expression does not match", function() {
+
+            $this->it( "raises an error", function() {
+
+                $this->expect( function() {
+
+                    $this->parser->parse_string( "abczabc" );
+
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
+
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "zabc". At line: 1 column: 4.'
+                        );
+                }); 
+
+            });
 
         });
 
     });
 
-    $this->describe( "for an unexpected expression after an expected expression", function() {
+    $this->describe( "at the end of a expression", function() {
 
-        $this->let( "input", function() {
-            return "123a";
+        $this->let( "parser_definition", function() {
+
+            return ( new Parser_Definition() )->define( function($parser) {
+
+                $parser->expression( "root",  function() {
+
+                    $this->matcher( function() {
+
+                        $this ->str( "abc" ) ->integer();
+
+                    });
+
+                    $this->handler( function($integer) {
+
+                        return $integer;
+
+                    });
+
+                });
+
+                $parser->expression( "integer",  function() {
+
+                    $this->matcher( function() {
+
+                        $this->regex( "/([0-9]+)/" );
+
+                    });
+
+                    $this->handler( function($integer_string) {
+
+                        return (int) $integer_string;
+
+                    });
+
+                });
+
+            });
+
         });
 
-        $this->it( "raises an error", function() {
+        $this->it( "passes for a valid expression", function() {
 
-            $this->expect( function() {
+            $result = $this->parser->parse_string( "abc123" );
 
-                $this->parser->parse_string( $this->input );
+            $this->expect( $result ) ->to() ->be( "===" ) ->than( 123 );
 
-            }) ->to() ->raise(
-                \Haijin\Parser\Unexpected_Expression_Error::class,
-                function($error) {
+        });
 
-                    $this->expect( $error->getMessage() ) ->to() ->equal(
-                        'Unexpected expression "a". At line: 1 column: 4.'
-                    );
-            }); 
+        $this->describe( "fails if the sub-expression does not match", function() {
+
+            $this->it( "raises an error", function() {
+
+                $this->expect( function() {
+
+                    $this->parser->parse_string( "zabc" );
+
+                }) ->to() ->raise(
+                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    function($error) {
+
+                        $this->expect( $error->getMessage() ) ->to() ->equal(
+                            'Unexpected expression "zabc". At line: 1 column: 1.'
+                        );
+                }); 
+
+            });
 
         });
 
     });
 
     $this->describe( "that is not defined", function() {
-
-        $this->let( "input", function() {
-            return "123a";
-        });
 
         $this->let( "parser_definition", function() {
 
@@ -134,7 +271,7 @@ $spec->describe( "When matching an expression particle", function() {
 
             $this->expect( function() {
 
-                $this->parser->parse_string( $this->input );
+                $this->parser->parse_string( "123abc" );
 
             }) ->to() ->raise(
                 \Haijin\Parser\Expression_Not_Found_Error::class,

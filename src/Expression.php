@@ -213,52 +213,18 @@ class Expression
 
     public function space()
     {
-        $this->proc( function() {
-
-            $char = $this->string[ $this->context_frame->char_index ];
-
-            while( $char == " " ||  $char == "\t" ) {
-
-                $this->skip_chars( 1 );
-
-                if( $this->at_end_of_stream() ) {
-                    return true;
-                }
-
-                $char = $this->string[ $this->context_frame->char_index ];
-            }
-
-            return true;
-
-        });
+        $this->add_particle(
+            Create::an( Space_Particle::class )->with()
+        );
 
         return $this;
     }
 
     public function blank()
     {
-        $this->proc( function() {
-
-            $char = $this->string[ $this->context_frame->char_index ];
-
-            while( $char == " " || $char == "\t" || $char == "\n" ) {
-
-                $this->skip_chars( 1 );
-
-                if( $char == "\n" ) {
-                    $this->new_line();
-                }
-
-                if( $this->at_end_of_stream() ) {
-                    break;
-                }
-
-                $char = $this->string[ $this->context_frame->char_index ];
-            }
-
-            return true;
-
-        });
+        $this->add_particle(
+            Create::an( Blank_Particle::class )->with()
+        );
 
         return $this;
     }
@@ -280,6 +246,24 @@ class Expression
             return true;
 
         });
+
+        return $this;
+    }
+
+    public function eos()
+    {
+        $this->add_particle(
+            Create::an( End_Of_Stream_Particle::class )->with()
+        );
+
+        return $this;
+    }
+
+    public function eol()
+    {
+        $this->add_particle(
+            Create::an( End_Of_Line_Particle::class )->with()
+        );
 
         return $this;
     }

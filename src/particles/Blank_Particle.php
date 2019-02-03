@@ -4,7 +4,7 @@ namespace Haijin\Parser;
 
 use Haijin\Instantiator\Create;
 
-class End_Of_Expression_Particle extends Particle
+class Blank_Particle extends Particle
 {
     /// Initializing
 
@@ -19,13 +19,13 @@ class End_Of_Expression_Particle extends Particle
 
     public function parse_with( $parser )
     {
-        return $parser->parse_end_of_expression_particle( $this );
+        return $parser->parse_blank_particle( $this );
     }
 
     /// Printing
 
     public function print_string()
     {
-        return "end-of-expression";
+        return "eos";
     }
 }
