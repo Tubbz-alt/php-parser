@@ -69,22 +69,20 @@ class Parser
     {
         while( $this->context_frame->has_expected_particles() )
         {
-            if( ! $this->context_frame->has_current_expression() ) {
-                break;
-            }
-
             $particle = $this->context_frame->next_expected_particle();
 
-            if( $this->at_end_of_stream()
-                &&
-                ! $particle->matches_eos()
-              )
-            {
+            if( $this->at_end_of_stream() && ! $particle->matches_eos() ) {
+
                 $this->on_unexpected_particle();    
                 continue;
+
             }
 
             $this->parse_particle( $particle );
+        }
+
+        if( $this->parsing_error !== null ) {
+            throw $this->parsing_error;
         }
 
         if( $this->not_end_of_stream() ) {
@@ -222,7 +220,7 @@ class Parser
         }
 
         if( $this->frames_stack->is_empty() ) {
-            throw $this->parsing_error;
+            return;
         }
 
         $this->restore_previous_context();
@@ -234,18 +232,19 @@ class Parser
 
     protected function on_unexpected_particle()
     {
-        if( ! $this->context_frame->has_expected_particles_sequences() ) {
+        if( $this->context_frame->has_expected_particles_sequences() ) {
 
-            if( $this->parsing_error === null ) {
-                $this->parsing_error = $this->new_unexpected_expression_error();
-            }
+            $this->begin_next_particles_sequence();
 
-            $this->end_unmatched_expression();
-            
-            return; 
+            return;
+
         }
 
-        $this->begin_next_particles_sequence();
+        if( $this->parsing_error === null ) {
+            $this->parsing_error = $this->new_unexpected_expression_error();
+        }
+
+        $this->end_unmatched_expression();
     }
 
     protected function begin_next_particles_sequence()
@@ -361,6 +360,7 @@ class Parser
         if( $this->peek_char() == "\n" ) {
             $this->skip_chars( 1 );
             $this->new_line();
+
             return true;
         }
 

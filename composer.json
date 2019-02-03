@@ -1,8 +1,8 @@
 {
     "name": "haijin/parser",
-    "description": "Framework to easily implement recursive descending parsers using a simple and expressive DSL.",
+    "description": "Framework to easily implement recursive descendent parsers using a simple and expressive DSL.",
     "keywords": ["parser", "recursive descendent parser", "grammar"],
-    "version": "0.1.1",
+    "version": "0.1.2",
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/haijin-development/php-parser",

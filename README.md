@@ -7,7 +7,7 @@ Framework to easily implement recursive descendent parsers using a simple and ex
 [![Build Status](https://travis-ci.org/haijin-development/php-parser.svg?branch=master)](https://travis-ci.org/haijin-development/php-parser)
 [![License](https://poser.pugx.org/haijin/parser/license)](https://packagist.org/packages/haijin/parser)
 
-### Version 0.1.1
+### Version 0.1.2
 
 This library is under active development and no stable version was released yet.
 
@@ -31,9 +31,11 @@ If you like it a lot you may contribute by [financing](https://github.com/haijin
         5. [Space particle](#c-2-4-5)
         6. [Blank particle](#c-2-4-6)
         7. [Carriage return particle](#c-2-4-7)
-        8. [Expression particle](#c-2-4-8)
-        9. [Expression processor](#c-2-4-9)
-        10. [Optional particles](#c-2-4-10)
+        8. [Carriage return particle](#c-2-4-8)
+        9. [Carriage return particle](#c-2-4-9)
+        10. [Expression particle](#c-2-4-10)
+        11. [Expression processor](#c-2-4-11)
+        12. [Optional particles](#c-2-4-12)
     5. [Parser methods](#c-2-5)
     6. [Before parsing method](#c-2-6)
     7. [Why does the string particle exist](#c-2-7)
@@ -602,6 +604,72 @@ $parser->expression( "integer_list",  function() {
 matches the strings `"1"`, `"1\n2"`, `"1\n2\n3"`, etc.
 
 <a name="c-2-4-8"></a>
+#### End of stream particle
+
+`eos` particle matches the end of the input, which is the position *after* the last char in the input. It does not pass any parameters to the handler.
+
+Example:
+
+```php
+$parser->expression( "integer_list",  function() {
+
+    $this->matcher( function() {
+
+        $this->integer() ->cr() ->integer_list()
+        ->or()
+        ->integer() ->eos();
+
+    });
+
+    $this->handler( function($integer, $list = null) {
+
+        if( $list == null ) {
+            return [ $integer ];
+        } else {
+            return array_merge( [ $integer ], $list );
+        }
+
+    });
+
+});
+```
+
+matches the strings `"1"`, `"1\n2"` and `"1\n2\n3"` but not "`1\n2\n3\n`".
+
+<a name="c-2-4-9"></a>
+#### End of line particle
+
+`eol` particle matches the end of a line, that can be either a `cr` or an `eof`. It does not pass any parameters to the handler.
+
+Example:
+
+```php
+$parser->expression( "integer_list",  function() {
+
+    $this->matcher( function() {
+
+        $this->integer() ->cr() ->integer_list()
+        ->or()
+        ->integer() ->eol();
+
+    });
+
+    $this->handler( function($integer, $list = null) {
+
+        if( $list == null ) {
+            return [ $integer ];
+        } else {
+            return array_merge( [ $integer ], $list );
+        }
+
+    });
+
+});
+```
+
+matches the strings `"1"`, `"1\n2"` and `"1\n2\n3"` and also "`1\n2\n3\n`".
+
+<a name="c-2-4-10"></a>
 #### Sub-expression particle
 
 A sub-expression particle matches a sub-expression defined in the same grammar and passes the result of the sub-expression `handler` evaluation to its own handler as the parameter.
@@ -733,7 +801,7 @@ $parser->expression( "literal-array",  function() {
 
 Hoewever defining sub-expressions with `exp` rather than calling the sub-expression as a method is **not** more efficient for the parser. Expression definitions and sequences of expected particles are built during the definition of the grammar given to a `Haijin\Parser\Parser` object, not during the parsing process.
 
-<a name="c-2-4-9"></a>
+<a name="c-2-4-11"></a>
 #### Expression processor
 
 By combining the previous particles it is possible to define sophisticated grammars.
@@ -907,7 +975,7 @@ The return value of the `processor` closure must be `true` if the stream complet
 
 As the grammar DSL is plain PHP code, besides the parser stream protocol it's also possible to call any PHP method and use any PHP feature during the parsing of the input stream, including any string and regex functions, third party libraries, loops, conditionals, etc.
 
-<a name="c-2-4-10"></a>
+<a name="c-2-4-12"></a>
 #### Optional particles
 
 `opt` particles makes any particle optional. If the particle is present it is parsed and its value is passed to the `handler`, if it absent it is ignored and a null value is passed to the `handler`.
