@@ -13,6 +13,11 @@ class End_Of_Expression_Particle
         return $parser->parse_end_of_expression_particle( $this );
     }
 
+    public function is_optional()
+    {
+        return false;
+    }
+
     /// Printing
 
     public function print_string()

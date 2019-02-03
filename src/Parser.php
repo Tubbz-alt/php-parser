@@ -96,19 +96,29 @@ class Parser
     {
         $this->context_frame->set_particle_result( $this->undefined );
 
+        if( $particle->is_optional() ) {
+            $saved_context = clone $this->context_frame;
+        }
+
         $parsed = $particle->parse_with( $this );
 
-        $result = $this->context_frame->get_particle_result();
-
-        $this->context_frame->set_particle_result( $this->undefined );
-
         if( $parsed ) {
+
+            $result = $this->context_frame->get_particle_result();
 
             if( $result !== $this->undefined ) {
                 $this->context_frame->add_handler_param( $result );
             }
 
+        } elseif( $particle->is_optional() ) {
+
+                $this->context_frame = $saved_context;
+
+                $this->context_frame->add_handler_param( null );
+
         } else {
+
+            $this->context_frame->set_particle_result( $this->undefined );
 
             $this->on_unexpected_particle();
 
@@ -272,7 +282,6 @@ class Parser
 
         return true;
     }
-
 
     public function parse_end_of_expression_particle($end_of_expression_particle)
     {

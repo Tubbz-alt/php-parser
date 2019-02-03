@@ -293,6 +293,13 @@ class Expression
         return $this;
     }
 
+    public function opt($particle)
+    {
+        $this->particle_sequences->last()->last()->be_optional();
+
+        return $this;
+    }
+
     public function or()
     {
         $this->particle_sequences->add(

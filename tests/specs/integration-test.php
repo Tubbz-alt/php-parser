@@ -61,13 +61,17 @@ $spec->describe( "When matching recursive expressions", function() {
 
                 $this->matcher( function() {
 
-                    $this->regex( "/([0-9]+)/" );
+                    $this ->opt( $this->sym( "-" ) ) ->regex( "/([0-9]+)/" );
 
                 });
 
-                $this->handler( function($integer_string) {
+                $this->handler( function($negative, $integer_string) {
 
-                    return (int) $integer_string;
+                    if( $negative === null ) {
+                        return (int) $integer_string;
+                    } else {
+                        return - (int) $integer_string;
+                    }
 
                 });
 
@@ -136,6 +140,22 @@ $spec->describe( "When matching recursive expressions", function() {
             $result = $this->parser->parse_string( $this->input );
 
             $this->expect( $result ) ->to() ->equal( 10 );
+
+        });
+
+    });
+
+    $this->describe( "when the input matches a negative integer", function() {
+
+        $this->let( "input", function() {
+            return "[ 1 , -2 , 3 , 4 ]";
+        });
+
+        $this->it( "evaluates the handler closure", function() {
+
+            $result = $this->parser->parse_string( $this->input );
+
+            $this->expect( $result ) ->to() ->equal( 6 );
 
         });
 

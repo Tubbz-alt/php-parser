@@ -33,6 +33,7 @@ If you like it a lot you may contribute by [financing](https://github.com/haijin
         7. [Carriage return particle](#c-2-4-7)
         8. [Expression particle](#c-2-4-8)
         9. [Expression processor](#c-2-4-9)
+        10. [Optional particles](#c-2-4-10)
     5. [Parser methods](#c-2-5)
     6. [Before parsing method](#c-2-6)
     7. [Why does the string particle exist](#c-2-7)
@@ -114,13 +115,17 @@ $parser_definition->define( function($parser) {
 
         $this->matcher( function() {
 
-            $this->regex( "/([0-9]+)/" );
+            $this ->opt( $this->sym( "-" ) ) ->regex( "/([0-9]+)/" );
 
         });
 
-        $this->handler( function($integer_string) {
+        $this->handler( function($negative, $integer_string) {
 
-            return (int) $integer_string;
+            if( $negative === null ) {
+                return (int) $integer_string;
+            } else {
+                return - (int) $integer_string;
+            }
 
         });
 
@@ -902,6 +907,34 @@ The return value of the `processor` closure must be `true` if the stream complet
 
 As the grammar DSL is plain PHP code, besides the parser stream protocol it's also possible to call any PHP method and use any PHP feature during the parsing of the input stream, including any string and regex functions, third party libraries, loops, conditionals, etc.
 
+<a name="c-2-4-10"></a>
+#### Optional particles
+
+`opt` particles makes any particle optional. If the particle is present it is parsed and its value is passed to the `handler`, if it absent it is ignored and a null value is passed to the `handler`.
+
+Example:
+
+```php
+$parser->expression( "negative-integer",  function() {
+
+    $this->matcher( function() {
+
+        $this ->opt( $this->sym( "-" ) ) ->integer();
+
+    });
+
+    $this->handler( function($negative, $integer) {
+
+        if( $negative === null ) {
+            return (int) $integer;
+        } else {
+            return - (int) ( $integer );
+        }
+
+    });
+
+});
+```
 
 <a name="c-2-5"></a>
 ### Parser methods
