@@ -7,9 +7,7 @@ Framework to easily implement recursive descendent parsers using a simple and ex
 [![Build Status](https://travis-ci.org/haijin-development/php-parser.svg?branch=master)](https://travis-ci.org/haijin-development/php-parser)
 [![License](https://poser.pugx.org/haijin/parser/license)](https://packagist.org/packages/haijin/parser)
 
-### Version 0.1.2
-
-This library is under active development and no stable version was released yet.
+### Version 1.0.0
 
 If you like it a lot you may contribute by [financing](https://github.com/haijin-development/support-haijin-development) its development.
 
@@ -52,7 +50,7 @@ Include this library in your project `composer.json` file:
 
     "require-dev": {
         ...
-        "haijin/parser": "^0.1",
+        "haijin/parser": "^1.0",
         ...
     },
 
