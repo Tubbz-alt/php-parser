@@ -143,11 +143,11 @@ class Context_Frame
 
     public function __set($property, $value)
     {
-        throw new Exception( "Error" );
+        throw new \RuntimeException( "Error" );
     }
 
     public function __get($property)
     {
-        throw new Exception( "Error" );
+        throw new \RuntimeException( "Error" );
     }
 }
