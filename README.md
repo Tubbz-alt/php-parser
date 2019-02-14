@@ -7,7 +7,7 @@ Framework to easily implement recursive descendent parsers using a simple and ex
 [![Build Status](https://travis-ci.org/haijin-development/php-parser.svg?branch=master)](https://travis-ci.org/haijin-development/php-parser)
 [![License](https://poser.pugx.org/haijin/parser/license)](https://packagist.org/packages/haijin/parser)
 
-### Version 1.0.0
+### Version 1.0.1
 
 If you like it a lot you may contribute by [financing](https://github.com/haijin-development/support-haijin-development) its development.
 
@@ -36,7 +36,6 @@ If you like it a lot you may contribute by [financing](https://github.com/haijin
         12. [Optional particles](#c-2-4-12)
     5. [Parser methods](#c-2-5)
     6. [Before parsing method](#c-2-6)
-    7. [Why does the string particle exist](#c-2-7)
 3. [Running the specs](#c-3)
 
 <a name="c-1"></a>
@@ -822,7 +821,7 @@ On the other hand, thinking how to solve these kind of patterns with procedural 
 
 So, from a cognitive point of view, the standard and well known regular expressions sintax can be a bad solution to parse an input stream.
 
-To cope with this lack of expresiveness of the standard regular expressions language, haijin/parser allows to directly parse the input stream in a `processor($closure)` method of an expression but hiding from the developer most of the parsing boiler part related with complex combinations of patterns, like backtracking failed patterns and moving between sequences of patterns.
+To cope with this lack of expresiveness of the standard regular expressions language haijin/parser allows to directly parse the input stream in a `processor($closure)` method of an expression but hiding from the developer most of the parsing boiler part related with complex combinations of patterns, like backtracking failed patterns and moving between sequences of patterns.
 
 Example:
 
@@ -1056,252 +1055,6 @@ $parser->before_parsing( function() {
 
 });
 ```
-
-<a name="c-2-7"></a>
-### Why does the string particle exist
-
-This whole section is about designing clever, intuitive and expressive languages. If you are more insterested in parsing brackets and semicolons do not read along.
-
-What makes a computer language sintax a good sintax?
-
-The reason regular expressions sintax is so error prone and lacks of expresiveness is that regex sintax was design to match the implementation of low level regular expressions searches for patterns and not the way developers think and express with a minimun effort the patterns they want to find. It's not entirely its designers fault: at the time resources were scarse and the designers could not possible know the result would be so unintuitive and unexpressive.
-
-The same can be said about the original sintax Kernighan & Ritchie designed for the C programming language. Coming from assembler their sintax choice was not bad at all. Actually it was quite good. However Kernighan & Ritchie design choices for the C language were based on making the parsing simple for the parser and not making the expresiveness simple for the developers.
-
-For instance, as other languages like Python, Smalltalk, Ruby and Ecmascript 6 (that is, recent versions of javascript) proved in time, brackets are not necessary for correctly parsing a scope delimiter. Neither is the semicolon to end a statement. It was a choice to make the parser implementation easier, and not the language more expressive.
-
-The same applies for the PHP designer decision of prepending a `$` character to each variable. What was he thinking of to make that symbol mandatory when he designed the most used language in the web? Practically all other existing languajes proved that decision unnecesary.
-He was not thinking in making an expressive and intuitive language. He just needed to implement a parser and tagging each variable with a `$` symbol made it easier for him. At the time resources were also scarsed and there was no nice and simple to use grammar domain specific language for PHP to define a complex grammars, so instead of building such a DSL he decided to prepend a dollar sign to every single variable in the language.
-
-So, what parts of a sintax improves the expresiveness of the sintax and what parts makes noise to the developers using that sintax?
-
-Let's take the sintax that express an integer number, for instance. `123`. Each character is a digit that carries an information that if absent would make the parsed input a different one. No digit is optional, except for leading zeros.
-
-Now, if in an expression every symbol is needed to carry a meaning like every digit in a number, why does the particle `str`, that passes no information to the parser handler, exist? If it does carry important information for the parser, where is it left that never arrives to the expression handler? And if `str` symbols do not carry important information for the parser, why would they even exist in the grammar?
-
-There are several reasons for the existence of the `str` particle. That is, for a sintax to include characters that carry no parsing information on themselves.
-
-The first reason, as we saw, is making the parsing easier for computers and more difficult to programmers. That's not a good reason thou.
-
-The second reason is to create a necessary context to correctly parse an input. For instance, if we had a list of many elements
-
-`1, 2, 3`
-
-there is no need of brackets to parse it as a list, but with only one element
-
-`list = [1]`
-
-if the context given by the `[]` was not present it would not be possible to tell if it's  single element or a list with a single item
-
-`list = 1`
-
-In this case the symbols `[]` are necessary and they do carry information for the parser.
-
-That's not the case of the parens in an `if` statement thou. As Python and Ruby sintaxes proved, an `if` statement could be expressed with no need for any brackets:
-
-```c
-// Kernighan & Ritchie derived sintaxes
-
-if ( some_condition ) {
-
-}
-```
-
-```ruby
-# Ruby sintax
-
-if some_condition
-end
-```
-
-What leads us to the third reason: a decorative reason for the programmers, not the parser.
-
-Why does a computer language, a formal and logical language, would include decorative symbols in its sintax that carry no information to the parser? Because despite they carry no information needed by the parser they do accomplish an important function for the developers using the sintax: the presence of those decorative symbols makes them feel better or worst.
-
-The `str` particle, that defines symbols in the grammar that carry no information for the parser, exists because of decorative reasons to developers.
-
-It's tempting to think that decorative reasons are bad reasons for a particle to exist in a sintax of a formal language. The sintax may end up including all sorts of unnecesary symbols. It may become poetry rather than a programming language. That's a valid concern, but it's also not understanding the value of decorations and underestimating the power that symbols and emotions have in developers, not in computers.
-
-A programming language is something developers choose to use or need to use for one fourth of their day time. As such, it should try to accomplish the following things:
-
-- it should be pleasant for the developers using it
-- it should minimize the intelectual effort needed by the developer to read it, understand it and to express hers ideas with it
-
-Those two things, the pleasure or displeasure it produces in developers and the intelectual effort it requires from developers, may be aligned or may be one against the other. But that depends on the sintax, not the developers.
-
-A sintax pleases or unpleases with a certain intensity to the developers using it. The better the sintax is, the more it pleases the developers using it. The worst the sintax is, the more it unpleases the developers.
-
-For instance, regular expressions sintax is extremely unpleasant for developers to read it in part because of the absense of decorative symbols. There are no spaces allowed between consecutive groups, making the interpretation of a long regular expression very unpleasant for persons. A simple decorative space between consecutive groups would make a huge difference on that matter.
-
-In the Kernighan & Ritchie derived sintaxis there's the eternal discusion about the position of the brackets `{}` in different statements. Should the open bracket `{` be in the end of a statement or in a line of its own?
-
-```c
-function some_function() {
-}
-
-function some_function()
-{
-}
-
-if ( some_condition ) {
-}
-
-if ( some_condition )
-{
-}
-```
-
-Should there be a space between `if` symbol and the opening parens `(` or not? Should statements inside parens be as compact as possible or should there be a space between parens and statements?
-
-```c
-if (value < 1)
-
-if( value < 1 )
-```
-
-All those decisions about a language sintax are decorative, they do not carry any information needed by the parser, but the do make a huge difference in the developers using it.
-
-What does it mean that a sintax be pleasant to a developer? It means exactly that, but there are some very subtle differences in the way a sintax pleases a developer.
-
-Why did most of the programming languages kept the original Kernighan & Ritchie sintax of brackets and semicolons for more than 4 decades? Because it pleased developers who already knew C, and pretty much every developer who went to a college or university in the past 3 decades learned C as its first programming language because that was the first language taught. Then, when those students got to desing their own languages like Java, Javascript, C++, Golang, etc, they made the choices they felt conformtable with. That pleased them.
-
-However, not all languages choosed the Kernighan & Ritchie sintax. Most notably Smalltalk and Ruby did not. Smalltalk sintax is completely different from C, and yet it's very pleasant for Smalltalk developers.
-
-So, which sintax pleases the more, C or Smalltalk? It's a tricky question.
-
-There are two different reasons for an experience to please a person. Some experiencies please persons with no reasons nor education needed. Those experiencies are pleasant just because. It's easy to identify those experiencies because children like them and enjoy them a lot. For instance, children usually like [Joan Miró](https://en.wikipedia.org/wiki/Joan_Mir%C3%B3) paintings a lot, even if they do not understand the symbolic meanings on them. They like them because of the colours and shapes, because Miró choices of colours and shapes are pleasant to persons with no need of being previously educated.
-
-The same happens with the melodies in the [penthatonic scale](https://en.wikipedia.org/wiki/Pentatonic_scale), children usually enjoy them a lot with no reasons and with no knowlege of music at all. The penthatonic scale pleases persons just because.
-
-On the other hand, other experiencies like drinking alcoholic beverages require an education to get a person to think it pleases her. The same happens with most of classic mussic, absurd humor like Monty Pythons gags, surrealism and both classic and modern art in general.
-
-Althou it may not seem at first glance, there are least two huge differences between pleasant experiencies that requires no education to please and the ones that do required education.
-
-The first one is the big learning curve needed by experiencies that require education to get a person to feel pleased by that experience. On the opposite of a Miró painting, to think that [Marcel Duchamp](https://en.wikipedia.org/wiki/Marcel_Duchamp)'s [fountain](https://en.wikipedia.org/wiki/Fountain_(Duchamp)) pleases us requires 3 years to get a degree on history of arts, or the equivalent of autodidact education. There's nothing in that fountain that could possibly please a person who hasn't been over-exposed to history of art education for years.
-
-The second one is the intelectual effort needed to think the pleasant experience. Listening to melodies in the penthatonic scale does not require much of an intelectual effort to please a person. Listening to [atonal music](https://en.wikipedia.org/wiki/Atonality) requires a huge intelectual effort. It requires an over-exposure to music education. Now, once a person is over-exposed through education it natularizes the intelectual effort. But that doesn't mean that the person effort is lower than before, it just means that the person feels comfortable performing that huge intelectual effort.
-
-So over-exposure to an experience through education makes a person to feel comfortable with that experiencie but it does not lower the intelectual effort that person does when exposed to that experience.
-
-And every effort, even the ones that please us, exhausts us in time. Even some extremely pleasant experiencies that require very little effort like eating, sleeping, spending time with the loved persons, kissing with the girls I'm fond of, exhaust persons and make a person to want to take a break from that experience or to start experimenting a displeasure because of that experience.
-
-Smalltalk and Kernighan & Ritchie sintaxes differ in the over-exposure they require to make a person, not yet a developer, to start pleasing her.
-
-Smalltalk sintax was design to mimic the colloquial language most persons already naturalized way before they start to program. The one every book is written with. It also was design to minimize the sintax decorations used to require the less intelectual effort possible. Because of those design decisions Smalltalk sintax has a very low level learning curve to non programmers who are learning their first computer language.
-
-Kernighan & Ritchie sintax was designed to ease the parsing for the computer and requires quite a learning curve to get a person learning her first programming language to enjoy that sintax. After years of over-exposure to that sintax programmers feel comfortable with it in the same way they feel comfortable with traditions and routines: not because they are any good but because they already know them and feel safe with them, even if they hurt or cause displeasures. Even when that sintax still requires a great and exhausintg intelectual effort for them.
-
-That's the reason most C programmers find Smalltalk sintax odd: they feel afraid of it in the same way a child is afraid the first day at a new school, but it has nothing to do with the sintax itself.
-
-Back to the question of which sintax is better, Smalltalk or Kernighan & Ritchie's, now we are able to sketch an answer.
-
-Smalltalk has a lower learning curve for a person learning her first programming language, and once she learned it it requires a lower intelectual effort because the sintax matches the colloquial writtings.
-
-Kernighan & Ritchie has a greater learning curve for a person learning her first programming language and once she learned it requires a considerable intelectual effort that exhauts the person even with the safety feelling it produces in her.
-
-That doesn't mean that Smalltalks sintax is the best a programming language can define. Ruby language designer's decision to drop the `self` particle as mandatory is a great design decision that adds a lot of expressiveness to the sintax and, at the same time, reduces the intelectual effort needed to read it. Ruby's community is known for having created the most expressive DSLs ever, in any language. That is in part because of Ruby desinger realized that the `self` statement was merly a decoratiion and made it optional.
-
-There is a fourth reason for the presence of decorative symbols in a sintax: cognitive reasons to reduce the intelectual effort needed to interpret it.
-
-The use of decorative symbols can increse or reduce a lot the intelectual effort done by a developer to read an expression.
-
-For instance, the expressions
-
-```c
-if (value < 1)
-```
-
-and
-
-```c
-if( value < 1 )
-```
-
-only differ in a few spaces between other symbols. And yet those spaces make a difference.
-
-In the first case they send the readers attention to the `if` symbol at the left, in the second case they send the readers attention to what's inside the parens. It may not seem like a big difference, but in a regular computer program there are hundreds of thousands of `if` statments, and this little difference has an impact on the exhaustion the reader experiments.
-
-And what does a developer wants to understand when reading an `if` statement? The logical condition, not the decorative symbols around it. A clever design for a computer language sintax is not about aesthetic decisions nor keeping traditions but to use decorations to emphasize what developers want to read to reduce their intelectual efforts, exhaust them less and please them more.
-
-Another example is the use of brackets `{}` in functions definitions and `statements`.
-
-```c
-function some_function() {
-    print(123);
-}
-```
-
-```c
-function some_function()
-{
-    print( 123 );
-}
-```
-
-in the first case the cognitive emphasis goes to the function signature declaration, in the second case it creates the cognitive idea that the reader is watching something composed by a header and a body, where no one has more importance than the other. It produces a balance bewteen the both of them.
-
-
-Spaces inside parens and brackets makes the statements inside them far more easy to read and leads the readers attention to the statements rather than the function name.
-
-```c
-print(123,"123",123);
-```
-
-```c
-print( 123, "123", "123" );
-```
-
-Why would it be better to emphazise the statements inside a function call rather than the function name? Because the parameters of a function call is where the program will have most of its errors, and not calling the wrong function.
-
-
-Sometimes decorations have no other reason that to please the reader:
-
-```c
-while( value < constant ) {
-    print(123);
-
-    print(123);
-}
-```
-
-The opening `{` goes in the same line to emphazise the loop condition. It leads the balance to the `while` statement.
-
-But the first stamement closed to the emphazised `while` produces a little annoyment when reading it.
-
-```c
-while( value < constant ) {
-
-    print(123);
-
-    print(123);
-}
-```
-
-In this case the first statement inside the loop body is read without the annoyment, but the last statement produces an annoyment because it breaks the vertical symmetry within the loop body.
-
-```c
-while( value < constant ) {
-
-    print(123);
-
-    print(123);
-
-}
-```
-
-In this case the symmetry produces a pleasant feeling, or at least avoids the unpleaseant feeling caused by the previous asymmetry.
-
-
-In summary, in Haijin Development we go further with Alan Kay's principle and define our own principle:
-
-```
-Simple things should be effortless,
-complex things should be possible,
-all things should be pleasant
-with the minimun amount of education.
-```
-
-That's my principle. Unlike Groucho Marx, I do not have others.
 
 <a name="c-3"></a>
 ## Running the specs

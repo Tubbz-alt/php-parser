@@ -1,8 +1,8 @@
 {
+    "minumum-stability": "dev",
     "name": "haijin/parser",
     "description": "Framework to easily implement recursive descendent parsers using a simple and expressive DSL.",
     "keywords": ["parser", "recursive descendent parser", "grammar", "bnf"],
-    "version": "1.0.0",
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/haijin-development/php-parser",
@@ -19,12 +19,35 @@
             "php": "7.1"
         }
     },
+    "repositories": {
+        "haijin/specs": {
+            "type": "path",
+            "url": "../php-specs",
+            "options": {
+            "symlink": true
+            }
+        },
+        "haijin/tools": {
+            "type": "path",
+            "url": "../php-tools",
+            "options": {
+            "symlink": true
+            }
+        },
+        "haijin/instantiator": {
+            "type": "path",
+            "url": "../php-instantiator",
+            "options": {
+            "symlink": true
+            }
+        }
+    },
     "require": {
-        "haijin/tools": "^1.1",
-        "haijin/instantiator": "^1.0"
+        "haijin/tools": "dev-development",
+        "haijin/instantiator": "dev-development"
     },
     "require-dev": {
-        "haijin/specs": "^1.1"
+        "haijin/specs": "dev-development"
     },
     "autoload": {
         "psr-4": {
