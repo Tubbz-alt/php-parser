@@ -27,15 +27,15 @@ $spec->describe( "Before parsing an input", function() {
 
                 });
 
-                $parser->expression( "root", function() {
+                $parser->expression( "root", function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "1" );
+                        $exp ->str( "1" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
 
                         return "parsed";
 
@@ -66,15 +66,15 @@ $spec->describe( "Before parsing an input", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root", function() {
+                $parser->expression( "root", function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "1" );
+                        $exp ->str( "1" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
 
                         return "parsed";
 

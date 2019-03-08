@@ -1,13 +1,22 @@
 # Haijin Parser
 
-Framework to easily implement recursive descendent parsers using a simple and expressive BNF DSL.
+Framework to easily implement a parser using a BNF like DSL in PHP.
 
 [![Latest Stable Version](https://poser.pugx.org/haijin/parser/version)](https://packagist.org/packages/haijin/parser)
 [![Latest Unstable Version](https://poser.pugx.org/haijin/parser/v/unstable)](https://packagist.org/packages/haijin/parser)
 [![Build Status](https://travis-ci.org/haijin-development/php-parser.svg?branch=master)](https://travis-ci.org/haijin-development/php-parser)
 [![License](https://poser.pugx.org/haijin/parser/license)](https://packagist.org/packages/haijin/parser)
 
-### Version 1.0.1
+**Highlights**
+
+* Zero configuration, external requirements and pre-processing.
+* Defines recursive grammars using a `BNF` like sintax.
+* Allows to easily process inputs without generating a mandatory intermediate parse tree.
+* Supports [optional expressions](#c-2-4-12).
+* Supports an [expression processor](#c-2-4-11) to define tokens using a procedural processing of the input stream with regular PHP code.
+* The DSL is all regular PHP, allowing the use of conditionals, loops and external libraries in any part of the grammar definition.
+
+### Version 2.0.0
 
 If you like it a lot you may contribute by [financing](https://github.com/haijin-development/support-haijin-development) its development.
 
@@ -49,7 +58,7 @@ Include this library in your project `composer.json` file:
 
     "require-dev": {
         ...
-        "haijin/parser": "^1.0",
+        "haijin/parser": "^2.0",
         ...
     },
 
@@ -68,15 +77,15 @@ Example of a grammar definition that sums the integers in a literal array:
 $parser_definition = new Parser_Definition();
 $parser_definition->define( function($parser) {
 
-    $parser->expression( "root",  function() {
+    $parser->expression( "root",  function($exp) {
 
-        $this->matcher( function() {
+        $exp->matcher( function($exp) {
 
             $this->str( "[" ) ->space() ->integer_list() ->space() ->str( "]" );
 
         });
 
-        $this->handler( function($integers) {
+        $exp->handler( function($integers) {
 
             return array_sum( $integers );
 
@@ -84,9 +93,9 @@ $parser_definition->define( function($parser) {
 
     });
 
-    $parser->expression( "integer_list",  function() {
+    $parser->expression( "integer_list",  function($exp) {
 
-        $this->matcher( function() {
+        $exp->matcher( function($exp) {
 
             $this->integer() ->space() ->str( "," ) ->space() ->integer_list()
 
@@ -96,7 +105,7 @@ $parser_definition->define( function($parser) {
 
         });
 
-        $this->handler( function($integer, $list = null) {
+        $exp->handler( function($integer, $list = null) {
 
             if( $list == null ) {
 
@@ -110,15 +119,15 @@ $parser_definition->define( function($parser) {
 
     });
 
-    $parser->expression( "integer",  function() {
+    $parser->expression( "integer",  function($exp) {
 
-        $this->matcher( function() {
+        $exp->matcher( function($exp) {
 
             $this ->opt( $this->sym( "-" ) ) ->regex( "/([0-9]+)/" );
 
         });
 
-        $this->handler( function($negative, $integer_string) {
+        $exp->handler( function($negative, $integer_string) {
 
             if( $negative === null ) {
                 return (int) $integer_string;
@@ -131,13 +140,6 @@ $parser_definition->define( function($parser) {
     });
 
 });
-```
-
-It is also possible to define the grammar in a separate file with:
-
-```php
-$parser_definition = new Parser_Definition();
-$parser_definition->define_in_file( $filename );
 ```
 
 To see a real use of a complex grammar take a look at the [haijin/haiku](https://github.com/haijin-development/php-haiku) [grammar](https://github.com/haijin-development/php-haiku/blob/master/src/haiku-definition.php).
@@ -166,15 +168,15 @@ An expression has a name and it's defined by one or several sequences of particl
 A simple expression example:
 
 ```php
-$parser->expression( "integer",  function() {
+$parser->expression( "integer",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this->regex( "/([0-9]+)/" );
 
     });
 
-    $this->handler( function($integer_string) {
+    $exp->handler( function($integer_string) {
 
         return (int) $integer_string;
 
@@ -186,15 +188,15 @@ $parser->expression( "integer",  function() {
 The parser begins parsing an input by a single root expression named `root` that must be defined in the grammar:
 
 ```php
-$parser->expression( "root",  function() {
+$parser->expression( "root",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this->str( "[" ) ->space() ->integer_list() ->space() ->str( "]" );
 
     });
 
-    $this->handler( function($integers) {
+    $exp->handler( function($integers) {
 
         return array_sum( $integers );
 
@@ -207,22 +209,22 @@ $parser->expression( "root",  function() {
 <a name="c-2-3-2"></a>
 #### Expression matcher
 
-Each expression has a `matcher` closure defined. The matcher defines the sequence of particles that defines the expression. That is, the sequence of characters that the parser expects to find when that expression is present in the input.
+Each expression has a `matcher` closure (actually it's a callable) defined. The matcher defines the sequence of particles that defines the expression. That is, the sequence of characters that the parser expects to find when that expression is present in the input.
 
-In it's most simple form, an expression is defined by a single particle.
+In it's most simple form an expression is defined by a single particle.
 
 The parser will match the expression if it matches the particle that defines it:
 
 ```php
-$parser->expression( "integer",  function() {
+$parser->expression( "integer",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->regex( "/([0-9]+)/" );
+        $exp->regex( "/([0-9]+)/" );
 
     });
 
-    $this->handler( function($integer_string) {
+    $exp->handler( function($integer_string) {
 
         return (int) $integer_string;
 
@@ -231,20 +233,20 @@ $parser->expression( "integer",  function() {
 });
 ```
 
-For compound expressions, particles are chained in an ordered sequence of particles.
+For compound expressions particles are chained in an ordered sequence.
 
 The parser will match the expression if it matches the whole sequence of particles in the exact order of its definition:
 
 ```php
-$parser->expression( "addition",  function() {
+$parser->expression( "addition",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this ->integer() ->space() ->str( "+" ) ->space() ->integer();
 
     });
 
-    $this->handler( function($left_operand, $right_operand) {
+    $exp->handler( function($left_operand, $right_operand) {
 
         return $left_operand + $right_operand;
 
@@ -256,9 +258,9 @@ $parser->expression( "addition",  function() {
 An expression can also be defined by matching the first sequence of particles among several possibilites using the `->or()` statement in its definition:
 
 ```php
-$parser->expression( "arithmetic_operation",  function() {
+$parser->expression( "arithmetic_operation",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this ->addition()
             ->or()
@@ -270,7 +272,7 @@ $parser->expression( "arithmetic_operation",  function() {
 
     });
 
-    $this->handler( function($result) {
+    $exp->handler( function($result) {
 
         return $result;
 
@@ -291,15 +293,15 @@ A handler closure has one parameter for each matched particle and returns a sing
 For instance, in the previous example:
 
 ```php
-$parser->expression( "integer",  function() {
+$parser->expression( "integer",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->regex( "/([0-9]+)/" );
+        $exp->regex( "/([0-9]+)/" );
 
     });
 
-    $this->handler( function($integer_string) {
+    $exp->handler( function($integer_string) {
 
         return (int) $integer_string;
 
@@ -313,15 +315,15 @@ the handler takes as its only parameter the matched string with a sequence of di
 When the parser matches a sequence of particles, the handler takes a parameter for each matched particle:
 
 ```php
-$parser->expression( "addition",  function() {
+$parser->expression( "addition",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this ->integer() ->space() ->str( "+" ) ->space() ->integer();
 
     });
 
-    $this->handler( function($left_operand, $right_operand) {
+    $exp->handler( function($left_operand, $right_operand) {
 
         return $left_operand + $right_operand;
 
@@ -338,17 +340,17 @@ More on that on the [particles section](#c-2-4).
 As it's possible to see in the examples, the particle `exp()` matches a sub-expression also defined in the grammar. That expression may be a different one or the same, allowing to define recursive descendent grammars:
 
 ```php
-$parser->expression( "integer_list",  function() {
+$parser->expression( "integer_list",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->integer() ->space() ->str( "," ) ->space() ->integer_list()
+        $exp->integer() ->space() ->str( "," ) ->space() ->integer_list()
         ->or()
         ->integer();
 
     });
 
-    $this->handler( function($integer, $list = null) {
+    $exp->handler( function($integer, $list = null) {
 
         if( $list == null ) {
             return [ $integer ];
@@ -363,15 +365,9 @@ $parser->expression( "integer_list",  function() {
 
 When an `exp` particle is matched, the `handler` receives the result of the sub-expression `handler` as a parameter.
 
-This makes processing the parsed input intuitive, effortless and very expressive, with no need to use any tree of expressions and visitors.
+This makes processing the parsed input intuitive, effortless and very expressive, with no need to use a parse tree and visitors.
 
-However, such a tree of expressions can be built quite simply using the expression handlers if needed, but that is entirely optional and is left as a developer's, and not the parsers, design decision for the grammar.
-
-This parser, and Haijin libraries in general, implements Alan Kays principle:
-
-```
-Make simple things simple, make complex things possible.
-```
+However, such a parse tree can be built quite simply using the expression handlers if needed, but that is entirely optional and is left as a developer's, and not the parsers, design decision for the grammar.
 
 <a name="c-2-4"></a>
 ### Particles
@@ -388,15 +384,15 @@ There are different types of particles that combined in sequences define more so
 Example:
 
 ```php
-$parser->expression( "additive_operand",  function() {
+$parser->expression( "additive_operand",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this ->sym( "+" );
 
     });
 
-    $this->handler( function($symbol) {
+    $exp->handler( function($symbol) {
 
     });
 
@@ -417,15 +413,15 @@ matches the string `"+"` and passes it to the `handler`.
 Example:
 
 ```php
-$parser->expression( "integer",  function() {
+$parser->expression( "integer",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->regex( "/([0-9]+)/" );
+        $exp->regex( "/([0-9]+)/" );
 
     });
 
-    $this->handler( function($integer_string) {
+    $exp->handler( function($integer_string) {
 
         return (int) $integer_string;
 
@@ -457,15 +453,15 @@ To match and expect just one string in the `handler` use the `regex` particle in
 Example:
 
 ```php
-$parser->expression( "association",  function() {
+$parser->expression( "association",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->regex( "/([0-9a-zA-Z_-\.]+): ([0-9a-zA-Z_-\.]+)/" );
+        $exp->regex( "/([0-9a-zA-Z_-\.]+): ([0-9a-zA-Z_-\.]+)/" );
 
     });
 
-    $this->handler( function($matches) {
+    $exp->handler( function($matches) {
 
         $key = $matches[ 0 ];
         $value = $matches[ 1 ];
@@ -487,15 +483,15 @@ matches the string `"version: 1.0"` and passes it to the `handler` in a single p
 Example:
 
 ```php
-$parser->expression( "additive_operand",  function() {
+$parser->expression( "additive_operand",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->str( "[" ) ->space() ->literal_list() ->space() ->str( "]" );
+        $exp->str( "[" ) ->space() ->literal_list() ->space() ->str( "]" );
 
     });
 
-    $this->handler( function($list) {
+    $exp->handler( function($list) {
 
     });
 
@@ -517,15 +513,15 @@ Use `space` particles to conveniently allow any number of optional spaces and ta
 Example:
 
 ```php
-$parser->expression( "addition",  function() {
+$parser->expression( "addition",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this ->integer() ->space() ->str( "+" ) ->space() ->integer();
 
     });
 
-    $this->handler( function($left_operand, $right_operand) {
+    $exp->handler( function($left_operand, $right_operand) {
 
         return $left_operand + $right_operand;
 
@@ -548,15 +544,15 @@ Use `blank` particles to conveniently allow any number of optional spaces, tabs 
 Example:
 
 ```php
-$parser->expression( "addition",  function() {
+$parser->expression( "addition",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this ->integer() ->blank() ->str( "+" ) ->blank() ->integer();
 
     });
 
-    $this->handler( function($left_operand, $right_operand) {
+    $exp->handler( function($left_operand, $right_operand) {
 
         return $left_operand + $right_operand;
 
@@ -575,17 +571,17 @@ matches the strings `"3+4"`, `"3 + 4"`, `"3\n+\n4"`, etc.
 Example:
 
 ```php
-$parser->expression( "integer_list",  function() {
+$parser->expression( "integer_list",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->integer() ->cr() ->integer_list()
+        $exp->integer() ->cr() ->integer_list()
         ->or()
         ->integer();
 
     });
 
-    $this->handler( function($integer, $list = null) {
+    $exp->handler( function($integer, $list = null) {
 
         if( $list == null ) {
             return [ $integer ];
@@ -608,17 +604,17 @@ matches the strings `"1"`, `"1\n2"`, `"1\n2\n3"`, etc.
 Example:
 
 ```php
-$parser->expression( "integer_list",  function() {
+$parser->expression( "integer_list",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->integer() ->cr() ->integer_list()
+        $exp->integer() ->cr() ->integer_list()
         ->or()
         ->integer() ->eos();
 
     });
 
-    $this->handler( function($integer, $list = null) {
+    $exp->handler( function($integer, $list = null) {
 
         if( $list == null ) {
             return [ $integer ];
@@ -641,17 +637,17 @@ matches the strings `"1"`, `"1\n2"` and `"1\n2\n3"` but not "`1\n2\n3\n`".
 Example:
 
 ```php
-$parser->expression( "integer_list",  function() {
+$parser->expression( "integer_list",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->integer() ->cr() ->integer_list()
+        $exp->integer() ->cr() ->integer_list()
         ->or()
         ->integer() ->eol();
 
     });
 
-    $this->handler( function($integer, $list = null) {
+    $exp->handler( function($integer, $list = null) {
 
         if( $list == null ) {
             return [ $integer ];
@@ -678,15 +674,15 @@ If the sub-expression is not defined in the grammar the parser will raise an `Ha
 Example:
 
 ```php
-$parser->expression( "addition",  function() {
+$parser->expression( "addition",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this ->integer() ->space() ->str( "+" ) ->space() ->integer();
 
     });
 
-    $this->handler( function($left_operand, $right_operand) {
+    $exp->handler( function($left_operand, $right_operand) {
 
         return $left_operand + $right_operand;
 
@@ -702,15 +698,15 @@ The sub-expression can be the same expression being defined, allowing to perform
 Example:
 
 ```php
-$parser->expression( "literal_array",  function() {
+$parser->expression( "literal_array",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->str( "[" ) ->space() ->literal_list() ->space() ->str( "]" );
+        $exp->str( "[" ) ->space() ->literal_list() ->space() ->str( "]" );
 
     });
 
-    $this->handler( function($values) {
+    $exp->handler( function($values) {
 
         return array_sum( $values );
 
@@ -718,11 +714,11 @@ $parser->expression( "literal_array",  function() {
 
 });
 
-$parser->expression( "literal_list",  function() {
+$parser->expression( "literal_list",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->literal() ->space() ->str( "," ) ->space() ->literal_list()
+        $exp->literal() ->space() ->str( "," ) ->space() ->literal_list()
 
         ->or()
 
@@ -730,7 +726,7 @@ $parser->expression( "literal_list",  function() {
 
     });
 
-    $this->handler( function($value, $list = null) {
+    $exp->handler( function($value, $list = null) {
 
         if( $list == null ) {
 
@@ -744,9 +740,9 @@ $parser->expression( "literal_list",  function() {
 
 });
 
-$parser->expression( "literal",  function() {
+$parser->expression( "literal",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
         $this ->literal_string()
         ->or()
@@ -760,7 +756,7 @@ $parser->expression( "literal",  function() {
 
     });
 
-    $this->handler( function($value) {
+    $exp->handler( function($value) {
 
         return $value;
 
@@ -779,15 +775,15 @@ If for any reason the sub-expression name is not a valid PHP method name, you ca
 `->exp($sub_expression_name)`:
 
 ```php
-$parser->expression( "literal-array",  function() {
+$parser->expression( "literal-array",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->str( "[" ) ->space() ->exp( "literal-list" ) ->space() ->str( "]" );
+        $exp->str( "[" ) ->space() ->exp( "literal-list" ) ->space() ->str( "]" );
 
     });
 
-    $this->handler( function($values) {
+    $exp->handler( function($values) {
 
         return array_sum( $values );
 
@@ -826,9 +822,9 @@ To cope with this lack of expresiveness of the standard regular expressions lang
 Example:
 
 ```php
-$parser->expression( "string_literal",  function() {
+$parser->expression( "string_literal",  function($exp) {
 
-    $this->processor( function() {
+    $exp->processor( function() {
 
         $char = $this->next_char();
 
@@ -873,7 +869,7 @@ $parser->expression( "string_literal",  function() {
 
     });
 
-    $this->handler( function($string) {
+    $exp->handler( function($string) {
 
         return $string;
 
@@ -967,10 +963,10 @@ public function current_line();
 public function current_column();
 ```
 
-The return value of the `processor` closure must be `true` if the stream completely matched the expression or false otherwise. If the stream did not completely match the expression it's not necessary to restore the stream pointers and indices nor to clean up partial results set during that particle. The parser does the backtraking in the grammar tree and continues to search for a matching expression on the next sequence of particles.
+The return value of the `processor` closure must be `true` if the stream completely matched the expression or false otherwise. If the stream did not completely match the expression it's not necessary to restore the stream pointers and indices nor to clean up partial results set during that particle. The parser does the backtracking in the grammar tree and continues to search for a matching expression on the next sequence of particles.
 
 
-As the grammar DSL is plain PHP code, besides the parser stream protocol it's also possible to call any PHP method and use any PHP feature during the parsing of the input stream, including any string and regex functions, third party libraries, loops, conditionals, etc.
+As the grammar DSL is plain PHP code besides the parser stream protocol it's also possible to call any PHP method and use any PHP feature during the parsing of the input stream, including any string and regex functions, third party libraries, loops, conditionals, etc.
 
 <a name="c-2-4-12"></a>
 #### Optional particles
@@ -980,15 +976,15 @@ As the grammar DSL is plain PHP code, besides the parser stream protocol it's al
 Example:
 
 ```php
-$parser->expression( "negative-integer",  function() {
+$parser->expression( "negative-integer",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this ->opt( $this->sym( "-" ) ) ->integer();
+        $this ->opt( $exp->sym( "-" ) ) ->integer();
 
     });
 
-    $this->handler( function($negative, $integer) {
+    $exp->handler( function($negative, $integer) {
 
         if( $negative === null ) {
             return (int) $integer;
@@ -1007,11 +1003,11 @@ $parser->expression( "negative-integer",  function() {
 Define methods and call them from within the `handlers` with:
 
 ```php
-$parser->expression( "literal_list",  function() {
+$parser->expression( "literal_list",  function($exp) {
 
-    $this->matcher( function() {
+    $exp->matcher( function($exp) {
 
-        $this->literal() ->space() ->str( "," ) ->space() ->literal_list()
+        $exp->literal() ->space() ->str( "," ) ->space() ->literal_list()
 
         ->or()
 
@@ -1019,7 +1015,7 @@ $parser->expression( "literal_list",  function() {
 
     });
 
-    $this->handler( function($value, $list = null) {
+    $exp->handler( function($value, $list = null) {
 
         if( $list == null ) {
 

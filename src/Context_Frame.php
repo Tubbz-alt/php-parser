@@ -2,7 +2,6 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Instantiator\Create;
 use Haijin\Ordered_Collection;
 
 class Context_Frame
@@ -29,8 +28,8 @@ class Context_Frame
         $this->column_index = 1;
 
         $this->current_expression = null;
-        $this->current_particles_sequences = Create::an( Ordered_Collection::class )->with();
-        $this->expected_particles = Create::an( Ordered_Collection::class )->with();
+        $this->current_particles_sequences = new Ordered_Collection();
+        $this->expected_particles = new Ordered_Collection();
 
         $this->handler_params = [];
         $this->expression_result = null;

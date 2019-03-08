@@ -2,8 +2,9 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Instantiator\Create;
 use Haijin\Ordered_Collection;
+use Haijin\Parser\Method_Not_Found_Error;
+use Haijin\Parser\Expression_Not_Found_Error;
 
 class Parser
 {
@@ -24,7 +25,7 @@ class Parser
         $this->string_length = 0;
 
         $this->context_frame = $this->new_context_frame();
-        $this->frames_stack = Create::an( Ordered_Collection::class )->with();
+        $this->frames_stack = new Ordered_Collection();
 
         $this->parsing_error = null;
 
@@ -33,7 +34,7 @@ class Parser
 
     protected function new_context_frame()
     {
-        return Create::a( Context_Frame::class )->with();
+        return new Context_Frame();
     }
 
     /// Parsing inputs
@@ -154,7 +155,13 @@ class Parser
 
     protected function evaluate_before_parsing_closure()
     {
-        return $this->parser_definition->get_before_parsing_closure()->call( $this );        
+        $before_parsing_closure = $this->parser_definition->get_before_parsing_closure();
+
+        if( is_a( $before_parsing_closure, \Closure::class ) ) {
+            return $before_parsing_closure->call( $this );
+        } else {
+            return $before_parsing_closure( $this );
+        }
     }
 
     /// Expressions
@@ -268,10 +275,20 @@ class Parser
 
         if( $handler_closure !== null ) {
 
-            $handler_result = $handler_closure ->call(
-                $this,
-                ...$this->context_frame->get_handler_params()
-            );
+            if( is_a( $handler_closure, \Closure::class ) ) {
+
+                $handler_result = $handler_closure->call(
+                        $this,
+                        ...$this->context_frame->get_handler_params()
+                    );
+
+            } else {
+
+                $handler_result = $handler_closure(
+                        ...$this->context_frame->get_handler_params()
+                   );
+
+            }
 
             $this->context_frame->set_expression_result( $handler_result );
         }
@@ -295,7 +312,13 @@ class Parser
 
     public function parse_procedural_particle($procedural_particle)
     {
-        return $procedural_particle->get_closure()->call( $this );
+        $procedural_particle_callable = $procedural_particle->get_closure();
+
+        if( is_a( $procedural_particle_callable, \Closure::class ) ) {
+            return $procedural_particle_callable->call( $this );
+        } else {
+            return $procedural_particle_callable( $this );            
+        }
     }
 
     public function parse_blank_particle($blank_particle)
@@ -511,7 +534,11 @@ class Parser
 
         }, $this );
 
-        return $closure->call( $this, ...$params );
+        if( is_a( $closure, \Closure::class ) ) {
+            return $closure->call( $this, ...$params );
+        } else {
+            return $closure( ...$params );
+        }
     }
 
     /// Raising errors
@@ -546,14 +573,14 @@ class Parser
             $expression = "expression \"{$matches[0]}\"";
         }
 
-        return Create::an( Unexpected_Expression_Error::class ) ->with(
+        return new Unexpected_Expression_Error(
             "Unexpected {$expression}. At line: {$this->current_line()} column: {$this->current_column()}."
         );
     }
 
     protected function raise_method_not_found_error($method_name)
     {
-        throw Create::an( \Haijin\Parser\Method_Not_Found_Error::class ) ->with(
+        throw new Method_Not_Found_Error(
             "The method \"{$method_name}\" was not found in this parser.",
             $method_name,
             $this
@@ -563,7 +590,7 @@ class Parser
 
     protected function raise_expression_not_found_error($expression_name)
     {
-        throw Create::an( \Haijin\Parser\Expression_Not_Found_Error::class ) ->with(
+        throw new Expression_Not_Found_Error(
             "The expression \"{$expression_name}\" was not found in this parser.",
             $expression_name,
             $this

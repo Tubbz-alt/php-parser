@@ -17,15 +17,15 @@ $spec->describe( "When matching a regex particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" ) ->str( "abc" );
+                        $exp ->regex( "/([0-9]+)/" ) ->str( "abc" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
 
                         return (int) $string;
 
@@ -112,15 +112,15 @@ $spec->describe( "When matching a regex particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "abc" ) ->regex( "/([0-9]+)/" ) ->str( "cba" );
+                        $exp ->str( "abc" ) ->regex( "/([0-9]+)/" ) ->str( "cba" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
 
                         return (int) $string;
 
@@ -207,15 +207,15 @@ $spec->describe( "When matching a regex particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "abc" ) ->regex( "/([0-9]+)/" );
+                        $exp ->str( "abc" ) ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
 
                         return (int) $string;
 

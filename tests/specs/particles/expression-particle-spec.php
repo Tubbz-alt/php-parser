@@ -17,15 +17,15 @@ $spec->describe( "When matching an expression particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->integer() ->str( "abc" );
+                        $exp ->integer() ->str( "abc" );
 
                     });
 
-                    $this->handler( function($integer) {
+                    $exp->handler( function($integer) {
 
                         return $integer;
 
@@ -33,15 +33,15 @@ $spec->describe( "When matching an expression particle", function() {
 
                 });
 
-                $parser->expression( "integer",  function() {
+                $parser->expression( "integer",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" );
+                        $exp ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($integer_string) {
+                    $exp->handler( function($integer_string) {
 
                         return (int) $integer_string;
 
@@ -119,15 +119,15 @@ $spec->describe( "When matching an expression particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "abc" ) ->integer() ->str( "cba" ); 
+                        $exp ->str( "abc" ) ->integer() ->str( "cba" ); 
 
                     });
 
-                    $this->handler( function($integer) {
+                    $exp->handler( function($integer) {
 
                         return $integer;
 
@@ -135,15 +135,15 @@ $spec->describe( "When matching an expression particle", function() {
 
                 });
 
-                $parser->expression( "integer",  function() {
+                $parser->expression( "integer",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" );
+                        $exp ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($integer_string) {
+                    $exp->handler( function($integer_string) {
 
                         return (int) $integer_string;
 
@@ -192,15 +192,15 @@ $spec->describe( "When matching an expression particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "abc" ) ->integer();
+                        $exp ->str( "abc" ) ->integer();
 
                     });
 
-                    $this->handler( function($integer) {
+                    $exp->handler( function($integer) {
 
                         return $integer;
 
@@ -208,15 +208,15 @@ $spec->describe( "When matching an expression particle", function() {
 
                 });
 
-                $parser->expression( "integer",  function() {
+                $parser->expression( "integer",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" );
+                        $exp ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($integer_string) {
+                    $exp->handler( function($integer_string) {
 
                         return (int) $integer_string;
 

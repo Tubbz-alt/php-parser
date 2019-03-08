@@ -15,15 +15,15 @@ $spec->describe( "When matching a compound particles expression", function() {
 
         return ( new Parser_Definition() )->define( function($parser) {
 
-            $parser->expression( "root",  function() {
+            $parser->expression( "root",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->integer() ->str( "+" ) ->integer();
+                    $exp->integer() ->str( "+" ) ->integer();
 
                 });
 
-                $this->handler( function($left_integer, $right_integer) {
+                $exp->handler( function($left_integer, $right_integer) {
 
                     return $left_integer + $right_integer;
 
@@ -31,15 +31,15 @@ $spec->describe( "When matching a compound particles expression", function() {
 
             });
 
-            $parser->expression( "integer",  function() {
+            $parser->expression( "integer",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->regex( "/([0-9]+)/" );
+                    $exp->regex( "/([0-9]+)/" );
 
                 });
 
-                $this->handler( function($integer_string) {
+                $exp->handler( function($integer_string) {
 
                     return (int) $integer_string;
 

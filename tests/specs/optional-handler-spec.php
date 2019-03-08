@@ -15,15 +15,15 @@ $spec->describe( "When an expression does not define a handler", function() {
 
         return ( new Parser_Definition() )->define( function($parser) {
 
-            $parser->expression( "root", function() {
+            $parser->expression( "root", function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this ->with_handler() ->no_handler();
+                    $exp ->with_handler() ->no_handler();
 
                 });
 
-                $this->handler( function($value) {
+                $exp->handler( function($value) {
 
                     return $value;
 
@@ -31,15 +31,15 @@ $spec->describe( "When an expression does not define a handler", function() {
 
             });
 
-            $parser->expression( "with_handler", function() {
+            $parser->expression( "with_handler", function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this ->str( "1" );
+                    $exp ->str( "1" );
 
                 });
 
-                $this->handler( function() {
+                $exp->handler( function() {
 
                     return "parsed";
 
@@ -47,11 +47,11 @@ $spec->describe( "When an expression does not define a handler", function() {
 
             });
 
-            $parser->expression( "no_handler", function() {
+            $parser->expression( "no_handler", function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this ->str( "2" );
+                    $exp ->str( "2" );
 
                 });
 

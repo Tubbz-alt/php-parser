@@ -17,15 +17,15 @@ $spec->describe( "When matching a literal particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->str( "123" ) ->str( "321" );
+                        $exp ->str( "123" ) ->str( "321" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
 
                         return "parsed";
 
@@ -111,15 +111,15 @@ $spec->describe( "When matching a literal particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->str( "1" ) ->str( "2" )  ->str( "3" );
+                        $exp ->str( "1" ) ->str( "2" )  ->str( "3" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
 
                         return "parsed";
 
@@ -205,15 +205,15 @@ $spec->describe( "When matching a literal particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->str( "321" ) ->str( "123" );
+                        $exp ->str( "321" ) ->str( "123" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
 
                         return "parsed";
 

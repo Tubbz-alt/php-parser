@@ -17,15 +17,15 @@ $spec->describe( "When matching a cr particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->cr() ->str( "123" );
+                        $exp ->cr() ->str( "123" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
                         return "parsed";
                     });
 
@@ -84,15 +84,15 @@ $spec->describe( "When matching a cr particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "1" ) ->cr() ->str( "2" );
+                        $exp ->str( "1" ) ->cr() ->str( "2" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
                         return "parsed";
                     });
 
@@ -151,15 +151,15 @@ $spec->describe( "When matching a cr particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "123" ) ->cr();
+                        $exp ->str( "123" ) ->cr();
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
                         return "parsed";
                     });
 

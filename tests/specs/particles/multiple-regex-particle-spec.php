@@ -17,15 +17,15 @@ $spec->describe( "When matching a multiple regex particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->m_regex( "/([0-9]+)/" ) ->str( "abc" );
+                        $exp ->m_regex( "/([0-9]+)/" ) ->str( "abc" );
 
                     });
 
-                    $this->handler( function($matches) {
+                    $exp->handler( function($matches) {
 
                         return (int) $matches[ 0 ];
 
@@ -112,15 +112,15 @@ $spec->describe( "When matching a multiple regex particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "abc" ) ->m_regex( "/([0-9]+)/" ) ->str( "cba" );
+                        $exp ->str( "abc" ) ->m_regex( "/([0-9]+)/" ) ->str( "cba" );
 
                     });
 
-                    $this->handler( function($matches) {
+                    $exp->handler( function($matches) {
 
                         return (int) $matches[ 0 ];
 
@@ -207,15 +207,15 @@ $spec->describe( "When matching a multiple regex particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "abc" ) ->m_regex( "/([0-9]+)/" );
+                        $exp ->str( "abc" ) ->m_regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($matches) {
+                    $exp->handler( function($matches) {
 
                         return (int) $matches[ 0 ];
 

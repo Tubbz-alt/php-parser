@@ -17,30 +17,30 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->opt( $this->integer() ) ->str( "a" ) ->str( "b" );
+                        $exp
+                            ->opt( $exp->integer() ) ->str( "a" ) ->str( "b" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
                 });
 
-                $parser->expression( "integer",  function() {
+                $parser->expression( "integer",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" );
+                        $exp ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return (int) $string;
                     });
 
@@ -90,30 +90,30 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->str( "a" ) ->opt( $this->integer() ) ->str( "b" );
+                        $exp
+                            ->str( "a" ) ->opt( $exp->integer() ) ->str( "b" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
                 });
 
-                $parser->expression( "integer",  function() {
+                $parser->expression( "integer",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" );
+                        $exp ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return (int) $string;
                     });
 
@@ -163,30 +163,30 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->str( "a" ) ->str( "b" ) ->opt( $this->integer() );
+                        $exp
+                            ->str( "a" ) ->str( "b" ) ->opt( $exp->integer() );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
                 });
 
-                $parser->expression( "integer",  function() {
+                $parser->expression( "integer",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" );
+                        $exp ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return (int) $string;
                     });
 
@@ -236,30 +236,30 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->opt( $this->integer() );
+                        $exp
+                            ->opt( $exp->integer() );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
                 });
 
-                $parser->expression( "integer",  function() {
+                $parser->expression( "integer",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" );
+                        $exp ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return (int) $string;
                     });
 
@@ -309,32 +309,32 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->opt( $this->integer() )
-                            ->opt( $this->str( " " ) )
-                            ->opt( $this->integer() );
+                        $exp
+                            ->opt( $exp->integer() )
+                            ->opt( $exp->str( " " ) )
+                            ->opt( $exp->integer() );
 
                     });
 
-                    $this->handler( function($int_1, $int_2) {
+                    $exp->handler( function($int_1, $int_2) {
                         return [ $int_1, $int_2 ];
                     });
 
                 });
 
-                $parser->expression( "integer",  function() {
+                $parser->expression( "integer",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this->regex( "/([0-9]+)/" );
+                        $exp ->regex( "/([0-9]+)/" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return (int) $string;
                     });
 

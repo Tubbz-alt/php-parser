@@ -17,23 +17,23 @@ $spec->describe( "When matching a procedural particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->p() ->str( "123" );
+                        $exp ->p() ->str( "123" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
                 });
 
-                $parser->expression( "p",  function() {
+                $parser->expression( "p",  function($exp) {
 
-                    $this->processor( function() {
+                    $exp->processor( function() {
 
                         if( $this->peek_char() == "#" ) {
 
@@ -49,7 +49,7 @@ $spec->describe( "When matching a procedural particle", function() {
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
@@ -109,23 +109,23 @@ $spec->describe( "When matching a procedural particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "123" ) ->p() ->str( "321" );
+                        $exp ->str( "123" ) ->p() ->str( "321" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
                 });
 
-                $parser->expression( "p",  function() {
+                $parser->expression( "p",  function($exp) {
 
-                    $this->processor( function() {
+                    $exp->processor( function() {
 
                         if( $this->peek_char() == "#" ) {
 
@@ -141,7 +141,7 @@ $spec->describe( "When matching a procedural particle", function() {
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
@@ -201,23 +201,23 @@ $spec->describe( "When matching a procedural particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "123" ) ->p();
+                        $exp ->str( "123" ) ->p();
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
                 });
 
-                $parser->expression( "p",  function() {
+                $parser->expression( "p",  function($exp) {
 
-                    $this->processor( function() {
+                    $exp->processor( function() {
 
                         if( $this->peek_char() == "#" ) {
 
@@ -233,7 +233,7 @@ $spec->describe( "When matching a procedural particle", function() {
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 

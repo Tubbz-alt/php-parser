@@ -2,7 +2,6 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Instantiator\Create;
 use Haijin\Ordered_Collection;
 
 class Expression
@@ -17,9 +16,9 @@ class Expression
     {
         $this->name = $name;
         $this->handler_closure = null;
-        $this->particle_sequences = Create::an( Ordered_Collection::class )->with();
+        $this->particle_sequences = new Ordered_Collection();
         $this->particle_sequences->add(
-            Create::an( Ordered_Collection::class )->with()
+            new Ordered_Collection()
         );
     }
 
@@ -44,7 +43,7 @@ class Expression
 
     public function matcher($closure)
     {
-        $closure->call( $this );
+        $closure( $this );
 
         $this->append_end_of_sequence_to_each_particle_sequence();
     }
@@ -54,7 +53,7 @@ class Expression
         $this->particle_sequences->each_do( function ($particles_sequence) {
 
             $particles_sequence->add(
-                Create::an( End_Of_Expression_Particle::class )->with()
+                new End_Of_Expression_Particle()
             );
 
         });
@@ -131,7 +130,7 @@ class Expression
     public function exp($expression_name)
     {
         $this->add_particle(
-            Create::a( Sub_Expression_Particle::class )->with( $expression_name )
+            new Sub_Expression_Particle( $expression_name )
         );
 
         return $this;
@@ -214,7 +213,7 @@ class Expression
     public function space()
     {
         $this->add_particle(
-            Create::an( Space_Particle::class )->with()
+            new Space_Particle()
         );
 
         return $this;
@@ -223,7 +222,7 @@ class Expression
     public function blank()
     {
         $this->add_particle(
-            Create::an( Blank_Particle::class )->with()
+            new Blank_Particle()
         );
 
         return $this;
@@ -253,7 +252,7 @@ class Expression
     public function eos()
     {
         $this->add_particle(
-            Create::an( End_Of_Stream_Particle::class )->with()
+            new End_Of_Stream_Particle()
         );
 
         return $this;
@@ -262,7 +261,7 @@ class Expression
     public function eol()
     {
         $this->add_particle(
-            Create::an( End_Of_Line_Particle::class )->with()
+            new End_Of_Line_Particle()
         );
 
         return $this;
@@ -271,7 +270,7 @@ class Expression
     public function proc($closure)
     {
         $this->add_particle(
-            Create::an( Procedural_Particle::class )->with( $closure )
+            new Procedural_Particle( $closure )
         );
 
         return $this;
@@ -287,7 +286,7 @@ class Expression
     public function or()
     {
         $this->particle_sequences->add(
-            Create::an( Ordered_Collection::class )->with()
+            new Ordered_Collection()
         );
 
         return $this;

@@ -2,8 +2,6 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Instantiator\Create;
-
 class Space_Particle extends Particle
 {
     /// Initializing

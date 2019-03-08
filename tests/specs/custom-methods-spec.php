@@ -27,15 +27,15 @@ $spec->describe( "When calling custom methods in the parser", function() {
 
                 });
 
-                $parser->expression( "root", function() {
+                $parser->expression( "root", function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "1" );
+                        $exp ->str( "1" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
 
                         return $this->custom( 3, 4 );
 
@@ -63,15 +63,15 @@ $spec->describe( "When calling custom methods in the parser", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root", function() {
+                $parser->expression( "root", function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "1" );
+                        $exp ->str( "1" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
 
                         return $this->custom( 3, 4 );
 

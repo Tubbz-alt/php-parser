@@ -15,15 +15,15 @@ $spec->describe( "When matching recursive expressions", function() {
 
         return ( new Parser_Definition() )->define( function($parser) {
 
-            $parser->expression( "root",  function() {
+            $parser->expression( "root",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->str( "[" ) ->space() ->integer_list() ->space() ->str( "]" );
+                    $exp ->str( "[" ) ->space() ->integer_list() ->space() ->str( "]" );
 
                 });
 
-                $this->handler( function($integers) {
+                $exp->handler( function($integers) {
 
                     return array_sum( $integers );
 
@@ -31,11 +31,11 @@ $spec->describe( "When matching recursive expressions", function() {
 
             });
 
-            $parser->expression( "integer_list",  function() {
+            $parser->expression( "integer_list",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->integer() ->space() ->str( "," ) ->space() ->integer_list()
+                    $exp ->integer() ->space() ->str( "," ) ->space() ->integer_list()
 
                     ->or()
 
@@ -43,7 +43,7 @@ $spec->describe( "When matching recursive expressions", function() {
 
                 });
 
-                $this->handler( function($integer, $list = null) {
+                $exp->handler( function($integer, $list = null) {
 
                     if( $list == null ) {
 
@@ -57,15 +57,15 @@ $spec->describe( "When matching recursive expressions", function() {
 
             });
 
-            $parser->expression( "integer",  function() {
+            $parser->expression( "integer",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this ->opt( $this->sym( "-" ) ) ->regex( "/([0-9]+)/" );
+                    $exp ->opt( $exp->sym( "-" ) ) ->regex( "/([0-9]+)/" );
 
                 });
 
-                $this->handler( function($negative, $integer_string) {
+                $exp->handler( function($negative, $integer_string) {
 
                     if( $negative === null ) {
                         return (int) $integer_string;

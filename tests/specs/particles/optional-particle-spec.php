@@ -17,16 +17,16 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->opt( $this->sym( "1" ) ) ->str( "2" ) ->str( "3" );
+                        $exp
+                            ->opt( $exp->sym( "1" ) ) ->str( "2" ) ->str( "3" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
@@ -76,16 +76,16 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->str( "1" ) ->opt( $this->sym( "2" ) ) ->str( "3" );
+                        $exp
+                            ->str( "1" ) ->opt( $exp->sym( "2" ) ) ->str( "3" );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
@@ -135,16 +135,16 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->str( "1" ) ->str( "2" ) ->opt( $this->sym( "3" ) );
+                        $exp
+                            ->str( "1" ) ->str( "2" ) ->opt( $exp->sym( "3" ) );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
@@ -194,16 +194,16 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->opt( $this->sym( "1" ) );
+                        $exp
+                            ->opt( $exp->sym( "1" ) );
 
                     });
 
-                    $this->handler( function($string) {
+                    $exp->handler( function($string) {
                         return $string;
                     });
 
@@ -253,17 +253,17 @@ $spec->describe( "When matching an optional particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this
-                            ->opt( $this->sym( "1" ) )
-                            ->opt( $this->sym( "2" ) );
+                        $exp
+                            ->opt( $exp->sym( "1" ) )
+                            ->opt( $exp->sym( "2" ) );
 
                     });
 
-                    $this->handler( function($string_1, $string_2) {
+                    $exp->handler( function($string_1, $string_2) {
                         return [ $string_1, $string_2 ];
                     });
 

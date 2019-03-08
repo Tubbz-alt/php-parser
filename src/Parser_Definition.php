@@ -2,7 +2,6 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Instantiator\Create;
 use Haijin\File_Path;
 use Haijin\Dictionary;
 
@@ -18,9 +17,9 @@ class Parser_Definition
     {
         $this->before_parsing_closure = null;
 
-        $this->expressions_by_name = Create::a( Dictionary::class )->with();
+        $this->expressions_by_name = new Dictionary();
 
-        $this->methods = Create::a( Dictionary::class )->with();
+        $this->methods = new Dictionary();
     }
 
     /// Accessing
@@ -30,12 +29,11 @@ class Parser_Definition
         return $this->before_parsing_closure;
     }
 
-    public function get_expression_named($expression_name, $absent_closure = null, $binding = null)
+    public function get_expression_named($expression_name, $absent_closure = null)
     {
         return $this->expressions_by_name->at_if_absent(
                     $expression_name,
-                    $absent_closure,
-                    $binding
+                    $absent_closure
                 );
     }
 
@@ -48,34 +46,18 @@ class Parser_Definition
             }, $this );
     }
 
-    public function custom_method_at($method_name, $absent_closure = null, $binding = null )
+    public function custom_method_at($method_name, $absent_closure = null)
     {
-        return $this->methods->at_if_absent( $method_name, $absent_closure, $binding );
+        return $this->methods->at_if_absent( $method_name, $absent_closure );
     }
 
     /// Defining
 
-    public function define($closure, $binding = null)
+    public function define($closure)
     {
-        if( $binding === null ) {
-            $binding = $this;
-        }
-
-        $closure->call( $binding, $this );
+        $closure( $this );
 
         return $this;
-    }
-
-
-    public function define_in_file($file_path)
-    {
-        if( is_string( $file_path ) ) {
-            $file_path = Create::a( File_Path::class )->with( $file_path );
-        }
-
-        return $this->define( function($parser) use($file_path) {
-            require( $file_path->to_string() );
-        });
     }
 
     /// DSL
@@ -85,23 +67,23 @@ class Parser_Definition
         $this->before_parsing_closure = $closure;
     }
 
-    public function expression($name, $definition_closure)
+    public function expression($name, $definition_callable)
     {
-        $expression = Create::an( Expression::class )->with( $name );
+        $expression = new Expression( $name );
 
-        $definition_closure->call( $expression );
+        $definition_callable( $expression );
 
         $this->add_expression( $expression );
+    }
+
+    public function def( $method_name, $closure)
+    {
+        $this->methods[ $method_name ] = $closure;
     }
 
     protected function add_expression($expression)
     {
         $this->expressions_by_name[ $expression->get_name() ] = $expression;
-    }
-
-    protected function def( $method_name, $closure)
-    {
-        $this->methods[ $method_name ] = $closure;
     }
 
 }

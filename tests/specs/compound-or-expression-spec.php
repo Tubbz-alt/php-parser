@@ -15,15 +15,15 @@ $spec->describe( "When matching a particle among several", function() {
 
         return ( new Parser_Definition() )->define( function($parser) {
 
-            $parser->expression( "root",  function() {
+            $parser->expression( "root",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->integer() ->or() ->alpha() ->or() ->str( "#" );
+                    $exp ->integer() ->or() ->alpha() ->or() ->str( "#" );
 
                 });
 
-                $this->handler( function($integer_or_alpha = null) {
+                $exp->handler( function($integer_or_alpha = null) {
 
                     return $integer_or_alpha;
 
@@ -31,15 +31,15 @@ $spec->describe( "When matching a particle among several", function() {
 
             });
 
-            $parser->expression( "integer",  function() {
+            $parser->expression( "integer",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->regex( "/([0-9]+)/" );
+                    $exp ->regex( "/([0-9]+)/" );
 
                 });
 
-                $this->handler( function($integer_string) {
+                $exp->handler( function($integer_string) {
 
                     return (int) $integer_string;
 
@@ -47,15 +47,15 @@ $spec->describe( "When matching a particle among several", function() {
 
             });
 
-            $parser->expression( "alpha",  function() {
+            $parser->expression( "alpha",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->regex( "/([a-z]+)/" );
+                    $exp ->regex( "/([a-z]+)/" );
 
                 });
 
-                $this->handler( function($alpha_string) {
+                $exp->handler( function($alpha_string) {
 
                     return $alpha_string;
 

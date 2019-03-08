@@ -2,8 +2,6 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Instantiator\Create;
-
 class Procedural_Particle extends Particle
 {
     protected $closure;

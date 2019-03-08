@@ -2,8 +2,6 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Instantiator\Create;
-
 class Sub_Expression_Particle extends Particle
 {
     protected $sub_expression_name;

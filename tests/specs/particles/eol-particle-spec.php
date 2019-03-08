@@ -17,15 +17,15 @@ $spec->describe( "When matching an eol particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->eol() ->str( "123" );
+                        $exp ->eol() ->str( "123" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
                         return "parsed";
                     });
 
@@ -68,15 +68,15 @@ $spec->describe( "When matching an eol particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "1" ) ->eol() ->str( "2" );
+                        $exp ->str( "1" ) ->eol() ->str( "2" );
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
                         return "parsed";
                     });
 
@@ -119,15 +119,15 @@ $spec->describe( "When matching an eol particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "123" ) ->eol();
+                        $exp ->str( "123" ) ->eol();
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
                         return "parsed";
                     });
 

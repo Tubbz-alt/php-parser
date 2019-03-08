@@ -33,18 +33,10 @@
             "options": {
             "symlink": true
             }
-        },
-        "haijin/instantiator": {
-            "type": "path",
-            "url": "../php-instantiator",
-            "options": {
-            "symlink": true
-            }
         }
     },
     "require": {
-        "haijin/tools": "dev-development",
-        "haijin/instantiator": "dev-development"
+        "haijin/tools": "dev-development"
     },
     "require-dev": {
         "haijin/specs": "dev-development"

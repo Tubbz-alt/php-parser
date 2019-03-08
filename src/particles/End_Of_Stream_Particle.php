@@ -2,8 +2,6 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Instantiator\Create;
-
 class End_Of_Stream_Particle extends Particle
 {
     /// Initializing

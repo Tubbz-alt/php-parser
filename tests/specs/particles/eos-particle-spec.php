@@ -17,15 +17,15 @@ $spec->describe( "When matching an eos particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->eos();
+                        $exp ->eos();
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
                         return "parsed";
                     });
 
@@ -68,15 +68,15 @@ $spec->describe( "When matching an eos particle", function() {
 
             return ( new Parser_Definition() )->define( function($parser) {
 
-                $parser->expression( "root",  function() {
+                $parser->expression( "root",  function($exp) {
 
-                    $this->matcher( function() {
+                    $exp->matcher( function($exp) {
 
-                        $this ->str( "123" ) ->eos();
+                        $exp ->str( "123" ) ->eos();
 
                     });
 
-                    $this->handler( function() {
+                    $exp->handler( function() {
                         return "parsed";
                     });
 

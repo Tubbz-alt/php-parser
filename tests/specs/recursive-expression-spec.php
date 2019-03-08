@@ -15,15 +15,15 @@ $spec->describe( "When matching recursive expressions", function() {
 
         return ( new Parser_Definition() )->define( function($parser) {
 
-            $parser->expression( "root",  function() {
+            $parser->expression( "root",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->str( "[" ) ->integer_list() ->str( "]" );
+                    $exp ->str( "[" ) ->integer_list() ->str( "]" );
 
                 });
 
-                $this->handler( function($integer) {
+                $exp->handler( function($integer) {
 
                     return $integer;
 
@@ -31,17 +31,17 @@ $spec->describe( "When matching recursive expressions", function() {
 
             });
 
-            $parser->expression( "integer_list",  function() {
+            $parser->expression( "integer_list",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->integer() ->str( "," ) ->integer_list()
+                    $exp ->integer() ->str( "," ) ->integer_list()
                     ->or()
                     ->integer();
 
                 });
 
-                $this->handler( function($integer, $list = null) {
+                $exp->handler( function($integer, $list = null) {
 
                     if( $list == null ) {
                         return [ $integer ];
@@ -53,15 +53,15 @@ $spec->describe( "When matching recursive expressions", function() {
 
             });
 
-            $parser->expression( "integer",  function() {
+            $parser->expression( "integer",  function($exp) {
 
-                $this->matcher( function() {
+                $exp->matcher( function($exp) {
 
-                    $this->regex( "/([0-9]+)/" );
+                    $exp ->regex( "/([0-9]+)/" );
 
                 });
 
-                $this->handler( function($integer_string) {
+                $exp->handler( function($integer_string) {
 
                     return (int) $integer_string;
 
