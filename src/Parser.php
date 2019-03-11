@@ -174,7 +174,7 @@ class Parser
 
                 $this->raise_expression_not_found_error( $expression_name );
 
-        }, $this );
+        });
     }
 
     protected function begin_expression($expression_name, $is_optional = false)
@@ -532,7 +532,7 @@ class Parser
 
             $this->raise_method_not_found_error( $method_name );
 
-        }, $this );
+        });
 
         if( is_a( $closure, \Closure::class ) ) {
             return $closure->call( $this, ...$params );

@@ -43,7 +43,7 @@ class Parser_Definition
 
                 return $this->get_expression_named( $expression_name );
 
-            }, $this );
+            });
     }
 
     public function custom_method_at($method_name, $absent_closure = null)
