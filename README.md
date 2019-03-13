@@ -669,7 +669,7 @@ A sub-expression particle matches a sub-expression defined in the same grammar a
 
 To evaluate a sub-expression call the method with the sub-expression name.
 
-If the sub-expression is not defined in the grammar the parser will raise an `Haijin\Parser\Expression_Not_Found_Error`.
+If the sub-expression is not defined in the grammar the parser will raise an `Haijin\Parser\Errors\Expression_Not_Found_Error`.
 
 Example:
 
@@ -1037,7 +1037,7 @@ $parser->def( "prepend", function($item, $array) {
 });
 ```
 
-If the method is not present it will raise a `Haijin\Parser\Method_Not_Found_Error`.
+If the method is not present it will raise a `Haijin\Parser\Errors\Method_Not_Found_Error`.
 
 <a name="c-2-6"></a>
 ### Before parsing method

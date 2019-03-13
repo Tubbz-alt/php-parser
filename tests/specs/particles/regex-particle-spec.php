@@ -2,6 +2,7 @@
 
 use Haijin\Parser\Parser;
 use Haijin\Parser\Parser_Definition;
+use Haijin\Parser\Errors\Unexpected_Expression_Error;
 
 $spec->describe( "When matching a regex particle", function() {
 
@@ -67,7 +68,7 @@ $spec->describe( "When matching a regex particle", function() {
                     $this->parser->parse_string( $this->input );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -92,7 +93,7 @@ $spec->describe( "When matching a regex particle", function() {
                     $this->parser->parse_string( $this->input );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -162,7 +163,7 @@ $spec->describe( "When matching a regex particle", function() {
                     $this->parser->parse_string( $this->input );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -187,7 +188,7 @@ $spec->describe( "When matching a regex particle", function() {
                     $this->parser->parse_string( $this->input );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -257,7 +258,7 @@ $spec->describe( "When matching a regex particle", function() {
                     $this->parser->parse_string( $this->input );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(

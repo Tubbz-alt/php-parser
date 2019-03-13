@@ -1,8 +1,10 @@
 <?php
 
-namespace Haijin\Parser;
+namespace Haijin\Parser\Errors;
 
-class Expression_Not_Found_Error extends Error
+use Haijin\Errors\Haijin_Error;
+
+class Expression_Not_Found_Error extends Haijin_Error
 {
     protected $method_name;
     protected $parser;

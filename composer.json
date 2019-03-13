@@ -43,7 +43,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Haijin\\Parser\\": ["src/", "src/particles/", "src/errors/"]
+            "Haijin\\Parser\\": ["src/"]
         }
     },
     "scripts": {

@@ -142,11 +142,11 @@ class Context_Frame
 
     public function __set($property, $value)
     {
-        throw new \RuntimeException( "Error" );
+        throw new Haijin_Error( "Error" );
     }
 
     public function __get($property)
     {
-        throw new \RuntimeException( "Error" );
+        throw new Haijin_Error( "Error" );
     }
 }

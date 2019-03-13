@@ -3,7 +3,13 @@
 namespace Haijin\Parser;
 
 use Haijin\Ordered_Collection;
-
+use Haijin\Parser\Particles\Procedural_Particle;
+use Haijin\Parser\Particles\End_Of_Expression_Particle;
+use Haijin\Parser\Particles\Sub_Expression_Particle;
+use Haijin\Parser\Particles\Space_Particle;
+use Haijin\Parser\Particles\Blank_Particle;
+use Haijin\Parser\Particles\End_Of_Line_Particle;
+use Haijin\Parser\Particles\End_Of_Stream_Particle;
 class Expression
 {
     protected $name;

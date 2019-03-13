@@ -1,8 +1,8 @@
 <?php
 
-namespace Haijin\Parser;
+namespace Haijin\Parser\Particles;
 
-class End_Of_Line_Particle extends Particle
+class Space_Particle extends Particle
 {
     /// Initializing
 
@@ -17,13 +17,13 @@ class End_Of_Line_Particle extends Particle
 
     public function parse_with( $parser )
     {
-        return $parser->parse_eol_particle( $this );
+        return $parser->parse_space_particle( $this );
     }
 
     /// Printing
 
     public function print_string()
     {
-        return "eol";
+        return "eos";
     }
 }

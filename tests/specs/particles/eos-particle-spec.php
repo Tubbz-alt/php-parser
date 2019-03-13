@@ -2,6 +2,7 @@
 
 use Haijin\Parser\Parser;
 use Haijin\Parser\Parser_Definition;
+use Haijin\Parser\Errors\Unexpected_Expression_Error;
 
 $spec->describe( "When matching an eos particle", function() {
 
@@ -50,7 +51,7 @@ $spec->describe( "When matching an eos particle", function() {
                 $this->parser->parse_string( "123" );
 
             }) ->to() ->raise(
-                \Haijin\Parser\Unexpected_Expression_Error::class,
+                Unexpected_Expression_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -101,7 +102,7 @@ $spec->describe( "When matching an eos particle", function() {
                 $this->parser->parse_string( "1234" );
 
             }) ->to() ->raise(
-                \Haijin\Parser\Unexpected_Expression_Error::class,
+                Unexpected_Expression_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -118,7 +119,7 @@ $spec->describe( "When matching an eos particle", function() {
                 $this->parser->parse_string( "123 " );
 
             }) ->to() ->raise(
-                \Haijin\Parser\Unexpected_Expression_Error::class,
+                Unexpected_Expression_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -135,7 +136,7 @@ $spec->describe( "When matching an eos particle", function() {
                 $this->parser->parse_string( "123\n" );
 
             }) ->to() ->raise(
-                \Haijin\Parser\Unexpected_Expression_Error::class,
+                Unexpected_Expression_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(

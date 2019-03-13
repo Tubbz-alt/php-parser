@@ -1,6 +1,6 @@
 <?php
 
-namespace Haijin\Parser;
+namespace Haijin\Parser\Particles;
 
 class Procedural_Particle extends Particle
 {

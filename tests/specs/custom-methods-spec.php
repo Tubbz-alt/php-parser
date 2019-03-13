@@ -2,6 +2,8 @@
 
 use Haijin\Parser\Parser;
 use Haijin\Parser\Parser_Definition;
+use Haijin\Parser\Errors\Method_Not_Found_Error;
+
 
 $spec->describe( "When calling custom methods in the parser", function() {
 
@@ -90,7 +92,7 @@ $spec->describe( "When calling custom methods in the parser", function() {
                 $this->parser->parse_string( $this->input );
 
             }) ->to() ->raise(
-                Haijin\Parser\Method_Not_Found_Error::class,
+                Method_Not_Found_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal( 'The method "custom" was not found in this parser.' );

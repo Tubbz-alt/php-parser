@@ -3,8 +3,9 @@
 namespace Haijin\Parser;
 
 use Haijin\Ordered_Collection;
-use Haijin\Parser\Method_Not_Found_Error;
-use Haijin\Parser\Expression_Not_Found_Error;
+use Haijin\Parser\Errors\Method_Not_Found_Error;
+use Haijin\Parser\Errors\Expression_Not_Found_Error;
+use Haijin\Parser\Errors\Unexpected_Expression_Error;
 
 class Parser
 {

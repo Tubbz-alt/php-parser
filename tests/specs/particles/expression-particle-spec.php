@@ -2,6 +2,9 @@
 
 use Haijin\Parser\Parser;
 use Haijin\Parser\Parser_Definition;
+use Haijin\Parser\Errors\Unexpected_Expression_Error;
+use Haijin\Parser\Errors\Expression_Not_Found_Error;
+
 
 $spec->describe( "When matching an expression particle", function() {
 
@@ -74,7 +77,7 @@ $spec->describe( "When matching an expression particle", function() {
                     $this->parser->parse_string( $this->input );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -99,7 +102,7 @@ $spec->describe( "When matching an expression particle", function() {
                     $this->parser->parse_string( $this->input );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -172,7 +175,7 @@ $spec->describe( "When matching an expression particle", function() {
                     $this->parser->parse_string( "abczabc" );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -245,7 +248,7 @@ $spec->describe( "When matching an expression particle", function() {
                     $this->parser->parse_string( "zabc" );
 
                 }) ->to() ->raise(
-                    \Haijin\Parser\Unexpected_Expression_Error::class,
+                    Unexpected_Expression_Error::class,
                     function($error) {
 
                         $this->expect( $error->getMessage() ) ->to() ->equal(
@@ -274,7 +277,7 @@ $spec->describe( "When matching an expression particle", function() {
                 $this->parser->parse_string( "123abc" );
 
             }) ->to() ->raise(
-                \Haijin\Parser\Expression_Not_Found_Error::class,
+                Expression_Not_Found_Error::class,
                 function($error) {
 
                     $this->expect( $error->getMessage() ) ->to() ->equal(
