@@ -44,7 +44,7 @@ $spec->describe( "When matching recursive expressions", function() {
 
                 $exp->handler( function($integer, $list = null) {
 
-                    if( $list == null ) {
+                    if( $list === null ) {
                         return [ $integer ];
                     } else {
                         return array_merge( [ $integer ], $list );

@@ -107,7 +107,7 @@ $parser_definition->define( function($parser) {
 
         $exp->handler( function($integer, $list = null) {
 
-            if( $list == null ) {
+            if( $list === null ) {
 
                 return [ $integer ];
 
@@ -352,7 +352,7 @@ $parser->expression( "integer_list",  function($exp) {
 
     $exp->handler( function($integer, $list = null) {
 
-        if( $list == null ) {
+        if( $list === null ) {
             return [ $integer ];
         } else {
             return array_merge( [ $integer ], $list );
@@ -583,7 +583,7 @@ $parser->expression( "integer_list",  function($exp) {
 
     $exp->handler( function($integer, $list = null) {
 
-        if( $list == null ) {
+        if( $list === null ) {
             return [ $integer ];
         } else {
             return array_merge( [ $integer ], $list );
@@ -616,7 +616,7 @@ $parser->expression( "integer_list",  function($exp) {
 
     $exp->handler( function($integer, $list = null) {
 
-        if( $list == null ) {
+        if( $list === null ) {
             return [ $integer ];
         } else {
             return array_merge( [ $integer ], $list );
@@ -649,7 +649,7 @@ $parser->expression( "integer_list",  function($exp) {
 
     $exp->handler( function($integer, $list = null) {
 
-        if( $list == null ) {
+        if( $list === null ) {
             return [ $integer ];
         } else {
             return array_merge( [ $integer ], $list );
@@ -728,7 +728,7 @@ $parser->expression( "literal_list",  function($exp) {
 
     $exp->handler( function($value, $list = null) {
 
-        if( $list == null ) {
+        if( $list === null ) {
 
             return [ $value ];
 
@@ -1017,7 +1017,7 @@ $parser->expression( "literal_list",  function($exp) {
 
     $exp->handler( function($value, $list = null) {
 
-        if( $list == null ) {
+        if( $list === null ) {
 
             return [ $value ];
 
