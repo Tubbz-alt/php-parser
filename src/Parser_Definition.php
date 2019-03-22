@@ -37,15 +37,6 @@ class Parser_Definition
                 );
     }
 
-    public function get_expressions_in( $expressions_names )
-    {
-        return $expressions_names->collect( function($expression_name) {
-
-                return $this->get_expression_named( $expression_name );
-
-            });
-    }
-
     public function custom_method_at($method_name, $absent_closure = null)
     {
         return $this->methods->at_if_absent( $method_name, $absent_closure );

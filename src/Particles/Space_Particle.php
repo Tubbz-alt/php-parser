@@ -22,8 +22,8 @@ class Space_Particle extends Particle
 
     /// Printing
 
-    public function print_string()
+    public function __toString()
     {
-        return "eos";
+        return "space()";
     }
 }

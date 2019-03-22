@@ -3,6 +3,7 @@
 namespace Haijin\Parser;
 
 use Haijin\Ordered_Collection;
+use Haijin\Errors\Haijin_Error;
 
 class Context_Frame
 {
@@ -142,11 +143,11 @@ class Context_Frame
 
     public function __set($property, $value)
     {
-        throw new Haijin_Error( "Error" );
+        throw new Haijin_Error( "The Context_Frame does not accept dymamic properties." );
     }
 
     public function __get($property)
     {
-        throw new Haijin_Error( "Error" );
+        throw new Haijin_Error( "The Context_Frame does not accept dymamic properties." );
     }
 }

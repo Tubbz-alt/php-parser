@@ -280,9 +280,10 @@ $spec->describe( "When matching an expression particle", function() {
                 Expression_Not_Found_Error::class,
                 function($error) {
 
-                    $this->expect( $error->getMessage() ) ->to() ->equal(
-                        'The expression "root" was not found in this parser.'
-                    );
+                    $this->expect( $error->get_method_name() ) ->to() ->equal( 'root' );
+
+                    $this->expect( $error->get_parser() ) ->to()
+                        ->be( '===' ) ->than( $this->parser );
             });
 
         });

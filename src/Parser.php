@@ -3,6 +3,7 @@
 namespace Haijin\Parser;
 
 use Haijin\Ordered_Collection;
+use Haijin\File_Path;
 use Haijin\Parser\Errors\Method_Not_Found_Error;
 use Haijin\Parser\Errors\Expression_Not_Found_Error;
 use Haijin\Parser\Errors\Unexpected_Expression_Error;
@@ -42,7 +43,11 @@ class Parser
 
     public function parse($file)
     {
-        return $this->parse_string( \file_get_contents( $file ) );
+        if( is_string( $file ) ) {
+            $file = new File_Path( $file );
+        }
+
+        return $this->parse_string( $file->read_file_contents() );
     }
 
     public function parse_string($string)
@@ -88,7 +93,7 @@ class Parser
         }
 
         if( $this->not_end_of_stream() ) {
-            $this->raise_unexpected_expression_error();
+            return $this->raise_unexpected_expression_error();
         }
     }
 
@@ -158,11 +163,7 @@ class Parser
     {
         $before_parsing_closure = $this->parser_definition->get_before_parsing_closure();
 
-        if( is_a( $before_parsing_closure, \Closure::class ) ) {
-            return $before_parsing_closure->call( $this );
-        } else {
-            return $before_parsing_closure( $this );
-        }
+        return $before_parsing_closure->call( $this );
     }
 
     /// Expressions

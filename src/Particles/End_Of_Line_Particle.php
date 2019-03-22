@@ -22,8 +22,8 @@ class End_Of_Line_Particle extends Particle
 
     /// Printing
 
-    public function print_string()
+    public function __toString()
     {
-        return "eol";
+        return "eol()";
     }
 }

@@ -3,7 +3,7 @@
 use Haijin\Parser\Parser;
 use Haijin\Parser\Parser_Definition;
 use Haijin\Parser\Errors\Unexpected_Expression_Error;
-
+use Haijin\Errors\File_Not_Found_Error;
 
 $spec->describe( "When matching recursive expressions", function() {
 
@@ -208,6 +208,30 @@ $spec->describe( "When matching recursive expressions", function() {
                         'Unexpected expression "2 3 4]". At line: 1 column: 4.'
                     );
             }); 
+
+        });
+
+    });
+
+    $this->describe( "parse a file", function() {
+
+        $this->it( "raises an error", function() {
+
+            $result = $this->parser->parse( 'tests/samples/input.txt' );
+
+            $this->expect( $result ) ->to() ->equal( 10 );
+
+        });
+
+        $this->it( "raises an error if the file does not exist", function() {
+
+            $this->expect( function() {
+
+                $this->parser->parse( 'tests/samples/missing-file.txt' );
+
+            }) ->to() ->raise(
+                File_Not_Found_Error::class
+            );
 
         });
 

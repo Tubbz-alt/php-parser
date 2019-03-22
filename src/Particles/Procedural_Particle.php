@@ -29,9 +29,9 @@ class Procedural_Particle extends Particle
 
     /// Printing
 
-    public function print_string()
+    public function __toString()
     {
-        return "procedural($closure)";
+        return "procedural(\$closure)";
     }
 
 }

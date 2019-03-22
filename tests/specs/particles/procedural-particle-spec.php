@@ -288,4 +288,74 @@ $spec->describe( "When matching a procedural particle", function() {
 
     });
 
+    $this->describe( "with a callable", function() {
+
+        $this->let( "parser_definition", function() {
+
+            return ( new Parser_Definition() )->define( function($parser) {
+
+                $parser->expression( "root",  function($exp) {
+
+                    $exp->matcher( function($exp) {
+
+                        $exp ->str( "123" ) ->p();
+
+                    });
+
+                    $exp->handler( function($string) {
+                        return $string;
+                    });
+
+                });
+
+                $parser->expression( "p",  function($exp) {
+
+                    $exp->processor( new Processor() );
+
+                    $exp->handler( function($string) {
+                        return $string;
+                    });
+
+                });
+
+            });
+
+        });
+
+        $this->it( "parses the input stream", function() {
+
+            $result = $this->parser->parse_string( "123#" );
+
+            $this->expect( $result ) ->to() ->equal( "#" );
+
+        });
+
+    });
+
 });
+
+class Processor
+{
+    public function __invoke($parser)
+    {
+        if( '#' != $parser->current_string() ) {
+            throw new \Exception( "Assertion failed" );
+        }
+
+        if( 3 != $parser->current_char_pos() ) {
+            throw new \Exception( "Assertion failed" );
+        }
+
+        if( $parser->peek_char() == "#" ) {
+
+            $parser->set_result( "#" );
+
+            $parser->next_char();
+
+            return true;
+
+        }
+
+        return false;
+    }
+}

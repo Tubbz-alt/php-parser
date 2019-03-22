@@ -22,7 +22,7 @@ class End_Of_Expression_Particle extends Particle
 
     /// Printing
 
-    public function print_string()
+    public function __toString()
     {
         return "end-of-expression";
     }

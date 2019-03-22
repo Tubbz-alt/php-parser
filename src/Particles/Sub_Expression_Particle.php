@@ -31,7 +31,7 @@ class Sub_Expression_Particle extends Particle
 
     /// Printing
 
-    public function print_string()
+    public function __toString()
     {
         return "exp('$this->sub_expression_name')";
     }
