@@ -817,7 +817,7 @@ On the other hand, thinking how to solve these kind of patterns with procedural 
 
 So, from a cognitive point of view, the standard and well known regular expressions sintax can be a bad solution to parse an input stream.
 
-To cope with this lack of expresiveness of the standard regular expressions language haijin/parser allows to directly parse the input stream in a `processor($closure)` method of an expression but hiding from the developer most of the parsing boiler part related with complex combinations of patterns, like backtracking failed patterns and moving between sequences of patterns.
+To cope with this lack of expresiveness of the standard regular expressions language haijin/parser allows to directly parse the input stream in a `processor($closure)` method of an expression but hiding from the developer most of the parsing boilerplate related with complex combinations of patterns, like backtracking failed patterns and moving between sequences of patterns.
 
 Example:
 
