@@ -35,7 +35,8 @@
         "haijin/tools": "dev-development"
     },
     "require-dev": {
-        "haijin/specs": "dev-development"
+        "haijin/specs": "dev-development",
+        "phpunit/php-code-coverage": "^7.0"
     },
     "autoload": {
         "psr-4": {

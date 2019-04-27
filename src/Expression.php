@@ -2,174 +2,178 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Ordered_Collection;
-use Haijin\Parser\Particles\Procedural_Particle;
-use Haijin\Parser\Particles\End_Of_Expression_Particle;
-use Haijin\Parser\Particles\Sub_Expression_Particle;
-use Haijin\Parser\Particles\Space_Particle;
-use Haijin\Parser\Particles\Blank_Particle;
-use Haijin\Parser\Particles\End_Of_Line_Particle;
-use Haijin\Parser\Particles\End_Of_Stream_Particle;
+use Haijin\OrderedCollection;
+use Haijin\Parser\Particles\BlankParticle;
+use Haijin\Parser\Particles\EndOfExpressionParticle;
+use Haijin\Parser\Particles\EndOfLineParticle;
+use Haijin\Parser\Particles\EndOfStreamParticle;
+use Haijin\Parser\Particles\ProceduralParticle;
+use Haijin\Parser\Particles\SpaceParticle;
+use Haijin\Parser\Particles\SubExpressionParticle;
+
 class Expression
 {
     protected $name;
     protected $particles;
-    protected $handler_closure;
+    protected $handlerClosure;
 
     /// Initializing
 
     public function __construct($name)
     {
         $this->name = $name;
-        $this->handler_closure = null;
-        $this->particle_sequences = new Ordered_Collection();
-        $this->particle_sequences->add(
-            new Ordered_Collection()
+        $this->handlerClosure = null;
+        $this->particleSequences = new OrderedCollection();
+        $this->particleSequences->add(
+            new OrderedCollection()
         );
     }
 
     /// Accessing
 
-    public function get_name()
+    public function getName()
     {
         return $this->name;
     }
 
-    public function get_particle_sequences()
+    public function getParticleSequences()
     {
-        return $this->particle_sequences;
+        return $this->particleSequences;
     }
 
-    public function get_handler_closure()
+    public function getHandlerClosure()
     {
-        return $this->handler_closure;
+        return $this->handlerClosure;
     }
 
     /// DSL
 
-    public function matcher($closure)
-    {
-        $closure( $this );
-
-        $this->append_end_of_sequence_to_each_particle_sequence();
-    }
-
-    protected function append_end_of_sequence_to_each_particle_sequence()
-    {
-        $this->particle_sequences->each_do( function ($particles_sequence) {
-
-            $particles_sequence->add(
-                new End_Of_Expression_Particle()
-            );
-
-        });
-    }
-
     public function processor($closure)
     {
-        $this->matcher( function() use($closure) {
+        $this->matcher(function () use ($closure) {
 
-            $this->proc( $closure );
+            $this->proc($closure);
 
         });
     }
 
-    public function m_regex($regex_string)
+    public function matcher($closure)
     {
-        $this->proc( function() use($regex_string) {
+        $closure($this);
 
-            $matches = [];
-
-            \preg_match(
-                $regex_string . "A",
-                $this->string,
-                $matches,
-                0,
-                $this->context_frame->char_index
-            );
-
-            if( empty( $matches ) ) {
-                return false;
-            }
-
-            $this->skip_chars( strlen( $matches[ 0 ] ) );
-            $this->set_result( array_slice( $matches, 1 ) );
-
-            return true;
-
-        });
-
-        return $this;
+        $this->appendEndOfSequenceToEachParticleSequence();
     }
 
-    public function regex($regex_string)
+    protected function appendEndOfSequenceToEachParticleSequence()
     {
-        $this->proc( function() use($regex_string) {
+        $this->particleSequences->eachDo(function ($particlesSequence) {
 
-            $matches = [];
-
-            \preg_match(
-                $regex_string . "A",
-                $this->string,
-                $matches,
-                0,
-                $this->context_frame->char_index
+            $particlesSequence->add(
+                new EndOfExpressionParticle()
             );
-
-            if( empty( $matches ) ) {
-                return false;
-            }
-
-            $this->skip_chars( strlen( $matches[ 0 ] ) );
-
-            $this->set_result(
-                isset( $matches[ 1 ] ) ? $matches[ 1 ] : $matches[ 0 ]
-            );
-
-            return true;
 
         });
-
-        return $this;
     }
 
-    public function exp($expression_name)
+    public function proc($closure)
     {
-        $this->add_particle(
-            new Sub_Expression_Particle( $expression_name )
+        $this->addParticle(
+            new ProceduralParticle($closure)
         );
+
+        return $this;
+    }
+
+    protected function addParticle($particle)
+    {
+        $this->particleSequences->last()->add($particle);
+    }
+
+    public function mRegex($regexString)
+    {
+        $this->proc(function () use ($regexString) {
+
+            $matches = [];
+
+            \preg_match(
+                $regexString . "A",
+                $this->string,
+                $matches,
+                0,
+                $this->contextFrame->charIndex
+            );
+
+            if (empty($matches)) {
+                return false;
+            }
+
+            $this->skipChars(strlen($matches[0]));
+            $this->setResult(array_slice($matches, 1));
+
+            return true;
+
+        });
+
+        return $this;
+    }
+
+    public function regex($regexString)
+    {
+        $this->proc(function () use ($regexString) {
+
+            $matches = [];
+
+            \preg_match(
+                $regexString . "A",
+                $this->string,
+                $matches,
+                0,
+                $this->contextFrame->charIndex
+            );
+
+            if (empty($matches)) {
+                return false;
+            }
+
+            $this->skipChars(strlen($matches[0]));
+
+            $this->setResult(
+                isset($matches[1]) ? $matches[1] : $matches[0]
+            );
+
+            return true;
+
+        });
 
         return $this;
     }
 
     public function str($string)
     {
-        $this->proc( function() use($string) {
+        $this->proc(function () use ($string) {
 
-            $string_length = strlen( $string );
+            $stringLength = strlen($string);
 
-            if( $this->context_frame->char_index + $string_length
+            if ($this->contextFrame->charIndex + $stringLength
                 >
-                $this->string_length
-              )
-            {
+                $this->stringLength
+            ) {
                 return false;
             }
 
-            if( substr_compare(
+            if (substr_compare(
                     $this->string,
                     $string,
-                    $this->context_frame->char_index,
-                    $string_length
+                    $this->contextFrame->charIndex,
+                    $stringLength
                 )
                 !=
                 0
-              )
-            {
+            ) {
                 return false;
             }
 
-            $this->skip_chars(  $string_length );
+            $this->skipChars($stringLength);
 
             return true;
 
@@ -180,34 +184,32 @@ class Expression
 
     public function sym($string)
     {
-        $this->proc( function() use($string) {
+        $this->proc(function () use ($string) {
 
-            $string_length = strlen( $string );
+            $stringLength = strlen($string);
 
-            if( $this->context_frame->char_index + $string_length
+            if ($this->contextFrame->charIndex + $stringLength
                 >
-                $this->string_length
-              )
-            {
+                $this->stringLength
+            ) {
                 return false;
             }
 
-            if( substr_compare(
+            if (substr_compare(
                     $this->string,
                     $string,
-                    $this->context_frame->char_index,
-                    $string_length
+                    $this->contextFrame->charIndex,
+                    $stringLength
                 )
                 !=
                 0
-              )
-            {
+            ) {
                 return false;
             }
 
-            $this->skip_chars( strlen( $string ) );
+            $this->skipChars(strlen($string));
 
-            $this->set_result( $string );
+            $this->setResult($string);
 
             return true;
 
@@ -218,8 +220,8 @@ class Expression
 
     public function space()
     {
-        $this->add_particle(
-            new Space_Particle()
+        $this->addParticle(
+            new SpaceParticle()
         );
 
         return $this;
@@ -227,8 +229,8 @@ class Expression
 
     public function blank()
     {
-        $this->add_particle(
-            new Blank_Particle()
+        $this->addParticle(
+            new BlankParticle()
         );
 
         return $this;
@@ -236,17 +238,17 @@ class Expression
 
     public function cr()
     {
-        $this->proc( function() {
+        $this->proc(function () {
 
-            if( $this->string[ $this->context_frame->char_index ] != "\n" ) {
+            if ($this->string[$this->contextFrame->charIndex] != "\n") {
 
                 return false;
 
             }
 
-            $this->skip_chars( 1 );
+            $this->skipChars(1);
 
-            $this->new_line();
+            $this->newLine();
 
             return true;
 
@@ -257,8 +259,8 @@ class Expression
 
     public function eos()
     {
-        $this->add_particle(
-            new End_Of_Stream_Particle()
+        $this->addParticle(
+            new EndOfStreamParticle()
         );
 
         return $this;
@@ -266,17 +268,8 @@ class Expression
 
     public function eol()
     {
-        $this->add_particle(
-            new End_Of_Line_Particle()
-        );
-
-        return $this;
-    }
-
-    public function proc($closure)
-    {
-        $this->add_particle(
-            new Procedural_Particle( $closure )
+        $this->addParticle(
+            new EndOfLineParticle()
         );
 
         return $this;
@@ -284,15 +277,15 @@ class Expression
 
     public function opt($particle)
     {
-        $this->particle_sequences->last()->last()->be_optional();
+        $this->particleSequences->last()->last()->beOptional();
 
         return $this;
     }
 
     public function or()
     {
-        $this->particle_sequences->add(
-            new Ordered_Collection()
+        $this->particleSequences->add(
+            new OrderedCollection()
         );
 
         return $this;
@@ -300,17 +293,21 @@ class Expression
 
     public function handler($closure)
     {
-        $this->handler_closure = $closure;
+        $this->handlerClosure = $closure;
     }
 
-    protected function add_particle($particle)
+    public function __call($methodName, $params)
     {
-        $this->particle_sequences->last()->add( $particle );
+        return $this->exp($methodName);
     }
 
-    public function __call($method_name, $params)
+    public function exp($expressionName)
     {
-        return $this->exp( $method_name );
+        $this->addParticle(
+            new SubExpressionParticle($expressionName)
+        );
+
+        return $this;
     }
 
 }

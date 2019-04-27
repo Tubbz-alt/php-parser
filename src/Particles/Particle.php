@@ -4,29 +4,29 @@ namespace Haijin\Parser\Particles;
 
 class Particle
 {
-    protected $is_optional;
-    protected $matches_eos;
+    protected $isOptional;
+    protected $matchesEos;
 
     /// Initializing
 
     public function __construct()
     {
-        $this->is_optional = false;
-        $this->matches_eos = false;
+        $this->isOptional = false;
+        $this->matchesEos = false;
     }
 
-    public function be_optional()
+    public function beOptional()
     {
-        $this->is_optional = true;
+        $this->isOptional = true;
     }
 
-    public function is_optional()
+    public function isOptional()
     {
-        return $this->is_optional;
+        return $this->isOptional;
     }
 
-    public function matches_eos()
+    public function matchesEos()
     {
-        return $this->matches_eos || $this->is_optional;
+        return $this->matchesEos || $this->isOptional;
     }
 }

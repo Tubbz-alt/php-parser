@@ -2,561 +2,220 @@
 
 namespace Haijin\Parser;
 
-use Haijin\Ordered_Collection;
-use Haijin\File_Path;
-use Haijin\Parser\Errors\Method_Not_Found_Error;
-use Haijin\Parser\Errors\Expression_Not_Found_Error;
-use Haijin\Parser\Errors\Unexpected_Expression_Error;
+use Haijin\FilePath;
+use Haijin\OrderedCollection;
+use Haijin\Parser\Errors\ExpressionNotFoundError;
+use Haijin\Parser\Errors\MethodNotFoundError;
+use Haijin\Parser\Errors\UnexpectedExpressionError;
 
 class Parser
 {
     public $string;
-    public $string_length;
+    public $stringLength;
 
-    public $char_index;
-    public $line_index;
-    public $column_index;
+    public $charIndex;
+    public $lineIndex;
+    public $columnIndex;
 
     /// Initializing
 
-    public function __construct($parser_definition)
+    public function __construct($parserDefinition)
     {
-        $this->parser_definition = $parser_definition;
+        $this->parserDefinition = $parserDefinition;
 
         $this->string = null;
-        $this->string_length = 0;
+        $this->stringLength = 0;
 
-        $this->context_frame = $this->new_context_frame();
-        $this->frames_stack = new Ordered_Collection();
+        $this->contextFrame = $this->newContextFrame();
+        $this->framesStack = new OrderedCollection();
 
-        $this->parsing_error = null;
+        $this->parsingError = null;
 
         $this->undefined = new \stdclass();
     }
 
-    protected function new_context_frame()
+    protected function newContextFrame()
     {
-        return new Context_Frame();
+        return new ContextFrame();
     }
 
     /// Parsing inputs
 
     public function parse($file)
     {
-        if( is_string( $file ) ) {
-            $file = new File_Path( $file );
+        if (($file)) {
+            $file = new FilePath($file);
         }
 
-        return $this->parse_string( $file->read_file_contents() );
+        return $this->parseString($file->readFileContents());
     }
 
-    public function parse_string($string)
+    public function parseString($string)
     {
         $this->string = $string;
-        $this->string_length = strlen( $this->string );
+        $this->stringLength = strlen($this->string);
 
-        $this->context_frame->char_index = 0;
-        $this->context_frame->line_index = 1;
-        $this->context_frame->column_index = 1;
+        $this->contextFrame->charIndex = 0;
+        $this->contextFrame->lineIndex = 1;
+        $this->contextFrame->columnIndex = 1;
 
-        if( $this->has_before_parsing_closure() ) {
-            $this->evaluate_before_parsing_closure();
+        if ($this->hasBeforeParsingClosure()) {
+            $this->evaluateBeforeParsingClosure();
         }
 
-        $this->begin_expression( "root" );
+        $this->beginExpression("root");
 
-        $this->do_parsing_loop();
+        $this->doParsingLoop();
 
-        return $this->context_frame->get_handler_params()[ 0 ];
+        return $this->contextFrame->getHandlerParams()[0];
     }
 
     /// Parsing particles loops
 
-    protected function do_parsing_loop()
+    protected function hasBeforeParsingClosure()
     {
-        while( $this->context_frame->has_expected_particles() )
-        {
-            $particle = $this->context_frame->next_expected_particle();
-
-            if( $this->at_end_of_stream() && ! $particle->matches_eos() ) {
-
-                $this->on_unexpected_particle();    
-                continue;
-
-            }
-
-            $this->parse_particle( $particle );
-        }
-
-        if( $this->parsing_error !== null ) {
-            throw $this->parsing_error;
-        }
-
-        if( $this->not_end_of_stream() ) {
-            return $this->raise_unexpected_expression_error();
-        }
+        return $this->parserDefinition->getBeforeParsingClosure() !== null;
     }
 
-    public function parse_particle($particle)
+    protected function evaluateBeforeParsingClosure()
     {
-        $this->context_frame->set_particle_result( $this->undefined );
+        $beforeParsingClosure = $this->parserDefinition->getBeforeParsingClosure();
 
-        if( $particle->is_optional() ) {
-            $saved_context = clone $this->context_frame;
-        }
-
-        $parsed = $particle->parse_with( $this );
-
-        if( $parsed ) {
-
-            $result = $this->context_frame->get_particle_result();
-
-            if( $result !== $this->undefined ) {
-                $this->context_frame->add_handler_param( $result );
-            }
-
-        } else {
-
-            if( $particle->is_optional() ) {
-
-                $this->context_frame = $saved_context;
-
-                $this->context_frame->add_handler_param( null );
-
-            } else {
-
-                $this->context_frame->set_particle_result( $this->undefined );
-
-                $this->on_unexpected_particle();
-
-            }
-        }
+        return $beforeParsingClosure->call($this);
     }
 
     /// Expressions stack
 
-    protected function save_current_context()
+    protected function beginExpression($expressionName, $isOptional = false)
     {
-        $this->frames_stack->add( $this->context_frame );
+        $this->saveCurrentContext();
 
-        $this->context_frame = clone $this->context_frame;
+        $this->contextFrame->setCurrentExpression(
+            $this->getExpressionNamed($expressionName)
+        );
+
+        $this->contextFrame->setExpectedParticlesSequences(
+            $this->contextFrame->getCurrentExpression()->getParticleSequences()
+        );
+
+        $this->contextFrame->setExpectedParticles(
+            $this->contextFrame->nextExpectedParticlesSequence()
+        );
+
+        $this->contextFrame->setHandlerParams([]);
+        $this->contextFrame->setExpressionResult(null);
+        $this->contextFrame->setExpressionIsOptional($isOptional);
     }
 
-    protected function restore_previous_context()
+    protected function saveCurrentContext()
     {
-        $this->context_frame = $this->frames_stack->remove_last();
+        $this->framesStack->add($this->contextFrame);
+
+        $this->contextFrame = clone $this->contextFrame;
     }
 
-    protected function get_previous_context()
+    protected function getExpressionNamed($expressionName)
     {
-        return $this->frames_stack->last();
+        return $this->parserDefinition->getExpressionNamed(
+            $expressionName,
+            function () use ($expressionName) {
+
+                $this->raiseExpressionNotFoundError($expressionName);
+
+            });
     }
 
     /// Before parsing closure
 
-    protected function has_before_parsing_closure()
+    protected function raiseExpressionNotFoundError($expressionName)
     {
-        return $this->parser_definition->get_before_parsing_closure() !== null;
+        throw new ExpressionNotFoundError(
+            "The expression \"{$expressionName}\" was not found in this parser.",
+            $expressionName,
+            $this
+        );
     }
 
-    protected function evaluate_before_parsing_closure()
+    protected function doParsingLoop()
     {
-        $before_parsing_closure = $this->parser_definition->get_before_parsing_closure();
+        while ($this->contextFrame->hasExpectedParticles()) {
+            $particle = $this->contextFrame->nextExpectedParticle();
 
-        return $before_parsing_closure->call( $this );
+            if ($this->atEndOfStream() && !$particle->matchesEos()) {
+
+                $this->onUnexpectedParticle();
+                continue;
+
+            }
+
+            $this->parseParticle($particle);
+        }
+
+        if ($this->parsingError !== null) {
+            throw $this->parsingError;
+        }
+
+        if ($this->notEndOfStream()) {
+            return $this->raiseUnexpectedExpressionError();
+        }
     }
 
     /// Expressions
 
-    protected function get_expression_named($expression_name)
+    /**
+     * Returns true if the stream is beyond its last char, false otherwise.
+     */
+    protected function atEndOfStream()
     {
-        return $this->parser_definition->get_expression_named(
-            $expression_name,
-            function() use($expression_name) {
-
-                $this->raise_expression_not_found_error( $expression_name );
-
-        });
+        return $this->contextFrame->charIndex >= $this->stringLength;
     }
 
-    protected function begin_expression($expression_name, $is_optional = false)
+    protected function onUnexpectedParticle()
     {
-        $this->save_current_context();
+        if ($this->contextFrame->hasExpectedParticlesSequences()) {
 
-        $this->context_frame->set_current_expression(
-            $this->get_expression_named( $expression_name )
-        );
-
-        $this->context_frame->set_expected_particles_sequences(
-            $this->context_frame->get_current_expression()->get_particle_sequences()
-        );
-
-        $this->context_frame->set_expected_particles(
-            $this->context_frame->next_expected_particles_sequence()
-        );
-
-        $this->context_frame->set_handler_params( [] );
-        $this->context_frame->set_expression_result( null );
-        $this->context_frame->set_expression_is_optional( $is_optional );
-    }
-
-    protected function end_matched_expression()
-    {
-        $current_context = $this->context_frame;
-
-        $this->restore_previous_context();
-
-        $this->context_frame->char_index = $current_context->char_index;
-        $this->context_frame->line_index = $current_context->line_index;
-        $this->context_frame->column_index = $current_context->column_index;
-
-        $this->context_frame->add_handler_param( $current_context->get_expression_result() );
-
-        $this->parsing_error = null;
-    }
-
-    protected function end_unmatched_expression()
-    {
-        if( $this->context_frame->expression_is_optional() ) {
-
-            $this->restore_previous_context();
-
-            $this->context_frame->add_handler_param( null );
-
-            $this->parsing_error = null;
+            $this->beginNextParticlesSequence();
 
             return;
+
         }
 
-        if( $this->frames_stack->is_empty() ) {
-            return;
+        if ($this->parsingError === null) {
+            $this->parsingError = $this->newUnexpectedExpressionError();
         }
 
-        $this->restore_previous_context();
+        $this->endUnmatchedExpression();
+    }
 
-        $this->on_unexpected_particle();
+    protected function beginNextParticlesSequence()
+    {
+        $this->contextFrame->setExpectedParticles(
+            $this->contextFrame->nextExpectedParticlesSequence()
+        );
+
+        $previousContext = $this->getPreviousContext();
+
+        $this->contextFrame->charIndex = $previousContext->charIndex;
+        $this->contextFrame->lineIndex = $previousContext->lineIndex;
+        $this->contextFrame->columnIndex = $previousContext->columnIndex;
+
+        $this->contextFrame->setHandlerParams([]);
+    }
+
+    protected function getPreviousContext()
+    {
+        return $this->framesStack->last();
     }
 
     /// Particles
 
-    protected function on_unexpected_particle()
+    protected function newUnexpectedExpressionError()
     {
-        if( $this->context_frame->has_expected_particles_sequences() ) {
-
-            $this->begin_next_particles_sequence();
-
-            return;
-
-        }
-
-        if( $this->parsing_error === null ) {
-            $this->parsing_error = $this->new_unexpected_expression_error();
-        }
-
-        $this->end_unmatched_expression();
-    }
-
-    protected function begin_next_particles_sequence()
-    {
-        $this->context_frame->set_expected_particles(
-            $this->context_frame->next_expected_particles_sequence()
-        );
-
-        $previous_context = $this->get_previous_context();
-
-        $this->context_frame->char_index = $previous_context->char_index;
-        $this->context_frame->line_index = $previous_context->line_index;
-        $this->context_frame->column_index = $previous_context->column_index;
-
-        $this->context_frame->set_handler_params( [] );
-    }
-
-    protected function end_particles_sequence()
-    {
-        $handler_closure = $this->context_frame->get_current_expression()->get_handler_closure();
-
-        if( $handler_closure !== null ) {
-
-            if( is_a( $handler_closure, \Closure::class ) ) {
-
-                $handler_result = $handler_closure->call(
-                        $this,
-                        ...$this->context_frame->get_handler_params()
-                    );
-
-            } else {
-
-                $handler_result = $handler_closure(
-                        ...$this->context_frame->get_handler_params()
-                   );
-
-            }
-
-            $this->context_frame->set_expression_result( $handler_result );
-        }
-
-        $this->end_matched_expression();
-
-        return true;
-    }
-
-    /// Particle methods
-
-    public function parse_sub_expression_particle($sub_expression_particle)
-    {
-        $this->begin_expression(
-            $sub_expression_particle->get_sub_expression_name(),
-            $sub_expression_particle->is_optional()
-        );
-
-        return true;
-    }
-
-    public function parse_procedural_particle($procedural_particle)
-    {
-        $procedural_particle_callable = $procedural_particle->get_closure();
-
-        if( is_a( $procedural_particle_callable, \Closure::class ) ) {
-            return $procedural_particle_callable->call( $this );
-        } else {
-            return $procedural_particle_callable( $this );            
-        }
-    }
-
-    public function parse_blank_particle($blank_particle)
-    {
-        if( $this->at_end_of_stream() ) {
-            return true;
-        }
-
-        $char = $this->peek_char( 0 );
-
-        while( $char == " " || $char == "\t" || $char == "\n" ) {
-
-            if( $char == "\n" ) {
-                $this->new_line();
-            }
-
-            $this->skip_chars( 1 );
-
-            if( $this->at_end_of_stream() ) {
-                break;
-            }
-
-            $char = $this->peek_char( 0 );
-        }
-
-        return true;
-    }
-
-    public function parse_space_particle($space_particle)
-    {
-        if( $this->at_end_of_stream() ) {
-            return true;
-        }
-
-        $char = $this->peek_char( 0 );
-
-        while( $char == " " || $char == "\t" ) {
-
-            $this->skip_chars( 1 );
-
-            if( $this->at_end_of_stream() ) {
-                break;
-            }
-
-            $char = $this->peek_char( 0 );
-        }
-
-        return true;
-    }
-
-    public function parse_eos_particle($eos_particle)
-    {
-        return $this->at_end_of_stream();
-    }
-
-    public function parse_eol_particle($eol_particle)
-    {
-        if( $this->at_end_of_stream() ) {
-            return true;
-        }
-
-        if( $this->peek_char() == "\n" ) {
-            $this->skip_chars( 1 );
-            $this->new_line();
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public function parse_end_of_expression_particle($end_of_expression_particle)
-    {
-        $this->end_particles_sequence();
-
-        return true;
-    }
-
-    /// Stream methods
-
-    /**
-     * Returns true if the stream is beyond its last char, false otherwise.
-     */
-    protected function at_end_of_stream()
-    {
-        return $this->context_frame->char_index >= $this->string_length;
-    }
-
-    /**
-     * Returns true if the stream has further chars, false otherwise.
-     */
-    protected function not_end_of_stream()
-    {
-        return $this->context_frame->char_index < $this->string_length;
-    }
-
-    /**
-     * Increments by one the input line counter and resets the column counter to 1.
-     *
-     * Call this method when the parser encounters a "\n" character in order
-     * to keep track of the correct line and column indices used in error messages.
-     *
-     * If this method is not properly called, the parser will still correctly parse
-     * valid inputs but the error messages for invalid inputs will be invalid.
-     */
-    public function new_line()
-    {
-        $this->context_frame->line_index += 1;
-        $this->context_frame->column_index = 1;
-    }
-
-    /**
-     * Increments the stream pointer and the column counter by $n.
-     *
-     * Use these method to move backwards or foreward in the stream skipping chars.
-     */
-    public function skip_chars($n)
-    {
-        $this->increment_char_index_by( $n );
-        $this->increment_column_index_by( $n );
-    }
-
-    public function increment_char_index_by($n)
-    {
-        $this->context_frame->char_index += $n;
-    }
-
-    public function increment_column_index_by($n)
-    {
-        $this->context_frame->column_index += $n;
-    }
-
-    /**
-     * Returns the tail of the stream which has not been parsed yet.
-     *
-     * Use this method only to debug the parsing process. Using it for the actual
-     * parsing of the input will probably be very inneficient.
-     */
-    public function current_string()
-    {
-        return \substr( $this->string, $this->context_frame->char_index );
-    }
-
-    /**
-     * Returns the current char in the stream and moves forward the stream pointer by one.
-     */
-    public function next_char()
-    {
-        $this->skip_chars( 1 );
-
-        return $this->peek_char_at( -1 );
-    }
-
-    /**
-     * Returns the current char in the stream. Does not modify the stream.
-     */
-    public function peek_char()
-    {
-        return $this->peek_char_at( 0 );
-    }
-
-    /**
-     * Returns the char at an $offset from its current position. Does not modify the stream.
-     */
-    public function peek_char_at($offset)
-    {
-        return $this->string[ $this->context_frame->char_index + $offset ];
-    }
-
-    /**
-     * Sets the result of the particle to be an $object.
-     *
-     * The result of a particle can be any object, it does not need to be the actual parsed
-     * input.
-     */
-    public function set_result($object)
-    {
-        $this->context_frame->set_particle_result( $object );
-    }
-
-    /**
-     * Returns the current line index.
-     *
-     * Use this method for debugging and for error messages.
-     */
-    public function current_line()
-    {
-        return $this->context_frame->line_index;
-    }
-
-    /**
-     * Returns the current column index in the current line.
-     *
-     * Use this method for debugging and for error messages.
-     */
-    public function current_column()
-    {
-        return $this->context_frame->column_index;
-    }
-
-    public function current_char_pos()
-    {
-        return $this->context_frame->char_index;
-    }
-
-    /// Custom methods
-
-    public function __call($method_name, $params )
-    {
-        $closure = $this->parser_definition->custom_method_at( $method_name, function() use($method_name) {
-
-            $this->raise_method_not_found_error( $method_name );
-
-        });
-
-        if( is_a( $closure, \Closure::class ) ) {
-            return $closure->call( $this, ...$params );
-        } else {
-            return $closure( ...$params );
-        }
-    }
-
-    /// Raising errors
-
-    protected function raise_unexpected_expression_error()
-    {
-        throw $this->new_unexpected_expression_error();
-    }
-
-    protected function new_unexpected_expression_error()
-    {
-        if( $this->at_end_of_stream() ) {
+        if ($this->atEndOfStream()) {
 
             $expression = "end of stream";
 
-        } elseif( $this->peek_char() == "\n" ) {
+        } elseif ($this->peekChar() == "\n") {
 
             $expression = '"\\n"';
 
@@ -569,32 +228,371 @@ class Parser
                 $this->string,
                 $matches,
                 0,
-                $this->context_frame->char_index
+                $this->contextFrame->charIndex
             );
 
             $expression = "expression \"{$matches[0]}\"";
         }
 
-        return new Unexpected_Expression_Error(
-            "Unexpected {$expression}. At line: {$this->current_line()} column: {$this->current_column()}."
+        return new UnexpectedExpressionError(
+            "Unexpected {$expression}. At line: {$this->currentLine()} column: {$this->currentColumn()}."
         );
     }
 
-    protected function raise_method_not_found_error($method_name)
+    /**
+     * Returns the current char in the stream. Does not modify the stream.
+     */
+    public function peekChar()
     {
-        throw new Method_Not_Found_Error(
-            "The method \"{$method_name}\" was not found in this parser.",
-            $method_name,
-            $this
-        );
+        return $this->peekCharAt(0);
     }
 
-
-    protected function raise_expression_not_found_error($expression_name)
+    /**
+     * Returns the char at an $offset from its current position. Does not modify the stream.
+     */
+    public function peekCharAt($offset)
     {
-        throw new Expression_Not_Found_Error(
-            "The expression \"{$expression_name}\" was not found in this parser.",
-            $expression_name,
+        return $this->string[$this->contextFrame->charIndex + $offset];
+    }
+
+    /// Particle methods
+
+    /**
+     * Returns the current line index.
+     *
+     * Use this method for debugging and for error messages.
+     */
+    public function currentLine()
+    {
+        return $this->contextFrame->lineIndex;
+    }
+
+    /**
+     * Returns the current column index in the current line.
+     *
+     * Use this method for debugging and for error messages.
+     */
+    public function currentColumn()
+    {
+        return $this->contextFrame->columnIndex;
+    }
+
+    protected function endUnmatchedExpression()
+    {
+        if ($this->contextFrame->expressionIsOptional()) {
+
+            $this->restorePreviousContext();
+
+            $this->contextFrame->addHandlerParam(null);
+
+            $this->parsingError = null;
+
+            return;
+        }
+
+        if ($this->framesStack->isEmpty()) {
+            return;
+        }
+
+        $this->restorePreviousContext();
+
+        $this->onUnexpectedParticle();
+    }
+
+    protected function restorePreviousContext()
+    {
+        $this->contextFrame = $this->framesStack->removeLast();
+    }
+
+    public function parseParticle($particle)
+    {
+        $this->contextFrame->setParticleResult($this->undefined);
+
+        if ($particle->isOptional()) {
+            $savedContext = clone $this->contextFrame;
+        }
+
+        $parsed = $particle->parseWith($this);
+
+        if ($parsed) {
+
+            $result = $this->contextFrame->getParticleResult();
+
+            if ($result !== $this->undefined) {
+                $this->contextFrame->addHandlerParam($result);
+            }
+
+        } else {
+
+            if ($particle->isOptional()) {
+
+                $this->contextFrame = $savedContext;
+
+                $this->contextFrame->addHandlerParam(null);
+
+            } else {
+
+                $this->contextFrame->setParticleResult($this->undefined);
+
+                $this->onUnexpectedParticle();
+
+            }
+        }
+    }
+
+    /**
+     * Returns true if the stream has further chars, false otherwise.
+     */
+    protected function notEndOfStream()
+    {
+        return $this->contextFrame->charIndex < $this->stringLength;
+    }
+
+    protected function raiseUnexpectedExpressionError()
+    {
+        throw $this->newUnexpectedExpressionError();
+    }
+
+    /// Stream methods
+
+    public function parseSubExpressionParticle($subExpressionParticle)
+    {
+        $this->beginExpression(
+            $subExpressionParticle->getSubExpressionName(),
+            $subExpressionParticle->isOptional()
+        );
+
+        return true;
+    }
+
+    public function parseProceduralParticle($proceduralParticle)
+    {
+        $proceduralParticleCallable = $proceduralParticle->getClosure();
+
+        if (is_a($proceduralParticleCallable, \Closure::class)) {
+            return $proceduralParticleCallable->call($this);
+        } else {
+            return $proceduralParticleCallable($this);
+        }
+    }
+
+    public function parseBlankParticle($blankParticle)
+    {
+        if ($this->atEndOfStream()) {
+            return true;
+        }
+
+        $char = $this->peekChar(0);
+
+        while ($char == " " || $char == "\t" || $char == "\n") {
+
+            if ($char == "\n") {
+                $this->newLine();
+            }
+
+            $this->skipChars(1);
+
+            if ($this->atEndOfStream()) {
+                break;
+            }
+
+            $char = $this->peekChar(0);
+        }
+
+        return true;
+    }
+
+    /**
+     * Increments by one the input line counter and resets the column counter to 1.
+     *
+     * Call this method when the parser encounters a "\n" character in order
+     * to keep track of the correct line and column indices used in error messages.
+     *
+     * If this method is not properly called, the parser will still correctly parse
+     * valid inputs but the error messages for invalid inputs will be invalid.
+     */
+    public function newLine()
+    {
+        $this->contextFrame->lineIndex += 1;
+        $this->contextFrame->columnIndex = 1;
+    }
+
+    /**
+     * Increments the stream pointer and the column counter by $n.
+     *
+     * Use these method to move backwards or forwards in the stream skipping chars.
+     */
+    public function skipChars($n)
+    {
+        $this->incrementCharIndexBy($n);
+        $this->incrementColumnIndexBy($n);
+    }
+
+    public function incrementCharIndexBy($n)
+    {
+        $this->contextFrame->charIndex += $n;
+    }
+
+    public function incrementColumnIndexBy($n)
+    {
+        $this->contextFrame->columnIndex += $n;
+    }
+
+    public function parseSpaceParticle($spaceParticle)
+    {
+        if ($this->atEndOfStream()) {
+            return true;
+        }
+
+        $char = $this->peekChar(0);
+
+        while ($char == " " || $char == "\t") {
+
+            $this->skipChars(1);
+
+            if ($this->atEndOfStream()) {
+                break;
+            }
+
+            $char = $this->peekChar(0);
+        }
+
+        return true;
+    }
+
+    public function parseEosParticle($eosParticle)
+    {
+        return $this->atEndOfStream();
+    }
+
+    public function parseEolParticle($eolParticle)
+    {
+        if ($this->atEndOfStream()) {
+            return true;
+        }
+
+        if ($this->peekChar() == "\n") {
+            $this->skipChars(1);
+            $this->newLine();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function parseEndOfExpressionParticle($endOfExpressionParticle)
+    {
+        $this->endParticlesSequence();
+
+        return true;
+    }
+
+    protected function endParticlesSequence()
+    {
+        $handlerClosure = $this->contextFrame->getCurrentExpression()->getHandlerClosure();
+
+        if ($handlerClosure !== null) {
+
+            if (is_a($handlerClosure, \Closure::class)) {
+
+                $handlerResult = $handlerClosure->call(
+                    $this,
+                    ...$this->contextFrame->getHandlerParams()
+                );
+
+            } else {
+
+                $handlerResult = $handlerClosure(
+                    ...$this->contextFrame->getHandlerParams()
+                );
+
+            }
+
+            $this->contextFrame->setExpressionResult($handlerResult);
+        }
+
+        $this->endMatchedExpression();
+
+        return true;
+    }
+
+    protected function endMatchedExpression()
+    {
+        $currentContext = $this->contextFrame;
+
+        $this->restorePreviousContext();
+
+        $this->contextFrame->charIndex = $currentContext->charIndex;
+        $this->contextFrame->lineIndex = $currentContext->lineIndex;
+        $this->contextFrame->columnIndex = $currentContext->columnIndex;
+
+        $this->contextFrame->addHandlerParam($currentContext->getExpressionResult());
+
+        $this->parsingError = null;
+    }
+
+    /**
+     * Returns the tail of the stream which has not been parsed yet.
+     *
+     * Use this method only to debug the parsing process. Using it for the actual
+     * parsing of the input will probably be very inneficient.
+     */
+    public function currentString()
+    {
+        return \substr($this->string, $this->contextFrame->charIndex);
+    }
+
+    /// Custom methods
+
+    /**
+     * Returns the current char in the stream and moves forward the stream pointer by one.
+     */
+    public function nextChar()
+    {
+        $this->skipChars(1);
+
+        return $this->peekCharAt(-1);
+    }
+
+    /// Raising errors
+
+    /**
+     * Sets the result of the particle to be an $object.
+     *
+     * The result of a particle can be any object, it does not need to be the actual parsed
+     * input.
+     */
+    public function setResult($object)
+    {
+        $this->contextFrame->setParticleResult($object);
+    }
+
+    public function currentCharPos()
+    {
+        return $this->contextFrame->charIndex;
+    }
+
+    public function __call($methodName, $params)
+    {
+        $closure = $this->parserDefinition->customMethodAt($methodName, function () use ($methodName) {
+
+            $this->raiseMethodNotFoundError($methodName);
+
+        });
+
+        if (is_a($closure, \Closure::class)) {
+            return $closure->call($this, ...$params);
+        } else {
+            return $closure(...$params);
+        }
+    }
+
+    protected function raiseMethodNotFoundError($methodName)
+    {
+        throw new MethodNotFoundError(
+            "The method \"{$methodName}\" was not found in this parser.",
+            $methodName,
             $this
         );
     }
